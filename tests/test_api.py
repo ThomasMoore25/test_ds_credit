@@ -201,3 +201,32 @@ def test_api_classify_scan_ocr_returns_unknown():
     response = client.post("/classify", json={"text": text})
     assert response.status_code == 200
     assert response.json()["doc_type"] == "unknown"
+
+
+def test_api_extract_with_emoji():
+    """API extract с эмодзи."""
+    response = client.post("/extract", json={"text": "ИНН 7701234567 🚜"})
+    assert response.status_code == 200
+    assert response.json()["inn"] == "7701234567"
+
+
+def test_api_extract_long_text():
+    """API extract с длинным текстом."""
+    text = "ИНН 7701234567. " * 1000
+    response = client.post("/extract", json={"text": text})
+    assert response.status_code == 200
+    assert response.json()["inn"] == "7701234567"
+
+
+def test_api_classify_with_empty_after_strip():
+    """API classify с текстом из пробелов."""
+    response = client.post("/classify", json={"text": "   "})
+    assert response.status_code == 200
+    assert response.json()["doc_type"] == "unknown"
+
+
+def test_api_check_subject_with_punctuation():
+    """API check_subject со знаками препинания."""
+    response = client.post("/check-subject", json={"subject": "!!! Поставка удобрений !!!"})
+    assert response.status_code == 200
+    assert response.json()["matches"] is True
