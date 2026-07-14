@@ -398,3 +398,25 @@ def test_extract_stress_many_dates():
     text = " ".join(f"от 0{i}.03.2025" for i in range(1, 10))
     r = extract(text)
     assert r["date"] is not None
+
+
+# --- Тесты суммы прописью (iter 81-85) ---
+
+def test_extract_amount_spellout_dva_milliona():
+    assert extract("Сумма: два миллиона рублей.")["amount"] == 2_000_000.0
+
+
+def test_extract_amount_spellout_tri_milliona():
+    assert extract("Сумма: три миллиона рублей.")["amount"] == 3_000_000.0
+
+
+def test_extract_amount_spellout_pyat_sot_tysyach():
+    assert extract("Сумма: пятьсот тысяч рублей.")["amount"] == 500_000.0
+
+
+def test_extract_amount_spellout_desyat_tysyach():
+    assert extract("Сумма: десять тысяч рублей.")["amount"] == 10_000.0
+
+
+def test_extract_amount_spellout sto_tysyach():
+    assert extract("Сумма: сто тысяч рублей.")["amount"] == 100_000.0
