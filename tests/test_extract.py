@@ -418,5 +418,5 @@ def test_extract_amount_spellout_desyat_tysyach():
     assert extract("Сумма: десять тысяч рублей.")["amount"] == 10_000.0
 
 
-def test_extract_amount_spellout sto_tysyach():
+def test_extract_amount_spellout_sto_tysyach():
     assert extract("Сумма: сто тысяч рублей.")["amount"] == 100_000.0
