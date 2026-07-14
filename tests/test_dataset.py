@@ -234,3 +234,36 @@ def test_all_inn_are_10_or_12_digits():
         if result["inn"] is not None:
             assert len(result["inn"]) in (10, 12), f"{fname.name}: INN {result['inn']} wrong length"
             assert result["inn"].isdigit(), f"{fname.name}: INN {result['inn']} not digits"
+
+
+def test_invoice_002_full_extract():
+    """Полная проверка invoice_002 — все поля."""
+    text = _read("invoice_002.txt")
+    r = extract(text)
+    assert r["amount"] == 900_000.0
+    assert r["date"] == "2025-02-28"
+    assert r["inn"] == "5047123456"
+    assert r["contractor"] == "АО «АгроСнаб»"
+    assert r["subject"] is not None
+    assert "семян" in r["subject"].lower()
+
+
+def test_act_002_full_extract():
+    """Полная проверка act_002 — все поля."""
+    text = _read("act_002.txt")
+    r = extract(text)
+    assert r["amount"] == 500_000.0
+    assert r["date"] == "2025-04-01"
+    assert r["inn"] == "504712345678"
+    assert r["contractor"] == "ИП Смирнов В.А."
+    assert r["subject"] is not None
+    assert "удобр" in r["subject"].lower() or "внесен" in r["subject"].lower()
+
+
+def test_scan_ocr_returns_none_for_critical_fields():
+    """scan_ocr возвращает None для amount, inn, contractor."""
+    text = _read("scan_ocr_001.txt")
+    r = extract(text)
+    assert r["amount"] is None
+    assert r["inn"] is None
+    assert r["contractor"] is None
