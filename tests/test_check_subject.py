@@ -157,3 +157,51 @@ def test_check_subject_empty_string():
     assert matches is False
     assert 0.0 <= confidence <= 1.0
     assert isinstance(reason, str)
+
+
+# --- Edge cases (iter 29-35) ---
+
+def test_check_subject_very_long():
+    """Очень длинный subject не должен падать."""
+    long_subject = "Поставка удобрений " + "карбамид " * 100
+    matches, _, _ = check_subject(long_subject)
+    assert matches is True
+
+
+def test_check_subject_special_chars():
+    """Спецсимволы в subject не должны ломать."""
+    matches, _, _ = check_subject("Поставка @#$% удобрений %&*")
+    assert isinstance(matches, bool)
+
+
+def test_check_subject_only_numbers():
+    """Только числа → FAIL с низкой уверенностью."""
+    matches, conf, _ = check_subject("1234567890")
+    assert matches is False
+    assert 0.0 <= conf <= 1.0
+
+
+def test_check_subject_mixed_case():
+    """Регистр не должен влиять на результат."""
+    m1, _, _ = check_subject("ПОСТАВКА УДОБРЕНИЙ")
+    m2, _, _ = check_subject("поставка удобрений")
+    assert m1 == m2
+
+
+def test_check_subject_with_extra_spaces():
+    """Лишние пробелы не должны влиять."""
+    m1, _, _ = check_subject("Поставка  удобрений")
+    m2, _, _ = check_subject("Поставка удобрений")
+    assert m1 == m2
+
+
+def test_check_subject_unicode():
+    """Unicode символы не должны ломать."""
+    matches, _, _ = check_subject("Поставка удобрений 🚜")
+    assert isinstance(matches, bool)
+
+
+def test_check_subject_mixed_languages():
+    """Смешение языков — английский + русский."""
+    matches, _, _ = check_subject("Поставка John Deere трактора")
+    assert matches is True
