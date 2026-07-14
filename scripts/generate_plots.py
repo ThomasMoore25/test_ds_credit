@@ -278,6 +278,39 @@ def plot_check_subject_confusion_matrix() -> pathlib.Path:
     plt.close(fig)
     return out
 
+def plot_check_subject_confidence_distribution() -> pathlib.Path:
+    """Гистограмма распределения confidence в check_subject."""
+    text = _read("subjects_test.txt")
+    confs_pass = []
+    confs_fail = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "|" not in line:
+            continue
+        status, subject = line.split("|", 1)
+        status = status.strip().upper()
+        matches, conf, _ = check_subject(subject.strip())
+        if matches:
+            confs_pass.append(conf)
+        else:
+            confs_fail.append(conf)
+
+    fig, ax = plt.subplots(figsize=(8, 5), constrained_layout=True)
+    bins = [i / 20 for i in range(21)]  # 0.0, 0.05, ..., 1.0
+    ax.hist(confs_pass, bins=bins, alpha=0.7, color="#2ecc71", edgecolor="black", label=f"PASS (n={len(confs_pass)})")
+    if confs_fail:
+        ax.hist(confs_fail, bins=bins, alpha=0.7, color="#e74c3c", edgecolor="black", label=f"FAIL (n={len(confs_fail)})")
+    ax.set_xlabel("Confidence", fontsize=11)
+    ax.set_ylabel("Число предметов", fontsize=11)
+    ax.set_title("Распределение confidence check_subject()", fontsize=12)
+    ax.legend(loc="upper center", fontsize=9)
+    ax.set_xlim(0, 1.05)
+    out = OUT / "check_subject_confidence_distribution.png"
+    fig.savefig(out, dpi=120)
+    plt.close(fig)
+    return out
+
+
 def main() -> int:
     print("Генерация графиков...")
     p1 = plot_classify_confidence()
@@ -288,6 +321,8 @@ def main() -> int:
     print(f"  ✓ {p3}")
     p4 = plot_check_subject_confusion_matrix()
     print(f"  ✓ {p4}")
+    p5 = plot_check_subject_confidence_distribution()
+    print(f"  ✓ {p5}")
     print("Готово.")
     return 0
 
