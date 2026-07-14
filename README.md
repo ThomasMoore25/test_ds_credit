@@ -8,7 +8,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![tests: 102 passed](https://img.shields.io/badge/tests-102%20passed-brightgreen.svg)](#51-запуск-тестов)
+[![tests: 275 passed](https://img.shields.io/badge/tests-275%20passed-brightgreen.svg)](#51-запуск-тестов)
 
 > ⚙️ **CI готов к активации**: workflow лежит в [`.github/ci.yml.example`](.github/ci.yml.example).
 > Для активации — переименовать в `.github/workflows/ci.yml` и запушить (требуется
@@ -182,7 +182,7 @@ test_ds_credit/
 pytest -v
 ```
 
-Ожидаемый результат: **102 passed** (29 extract + 10 classify + 22 check_subject + 30 dataset + 11 API).
+Ожидаемый результат: **275 passed** (66 extract + 31 classify + 64 check_subject + 36 dataset + 21 API + 52 parsers_extra).
 
 ### 5.2. CLI-демо
 
