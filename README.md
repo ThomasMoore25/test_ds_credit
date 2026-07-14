@@ -98,8 +98,18 @@ test_ds_credit/
 │   │   ├── amount.py           # числовые форматы + сумма прописью
 │   │   ├── date.py             # 3 формата дат → ISO YYYY-MM-DD
 │   │   ├── inn.py              # 10/12 цифр, отсев OCR-мусора
-│   │   ├── contractor.py       # ООО / АО / ПАО / ИП
-│   │   └── subject.py          # извлечение предмета договора/оплаты
+│   │   ├── contractor.py       # ООО / АО / ПАО / ИП / СПК / КФХ
+│   │   ├── subject.py          # извлечение предмета договора/оплаты
+│   │   ├── kpp.py              # КПП (9 цифр)
+│   │   ├── ogrn.py             # ОГРН/ОГРНИП (13/15 цифр)
+│   │   ├── bik.py              # БИК банка (9 цифр)
+│   │   ├── account.py          # расчётный счёт (р/с) и корр. счёт (к/с)
+│   │   ├── email.py            # email
+│   │   ├── phone.py            # телефон (+7/8 XXX XXX XX XX)
+│   │   ├── doc_number.py       # номер документа (№ 47/2025)
+│   │   ├── vat.py              # НДС (ставка + 'не облагается')
+│   │   ├── address.py          # адрес (по маркерам г./ул./д.)
+│   │   └── currency.py         # валюта (RUB/USD/EUR/KZT/CNY)
 │   └── llm/
 │       └── subject_checker.py  # LangChain few-shot + JSON-парсер + fallback
 ├── tests/
