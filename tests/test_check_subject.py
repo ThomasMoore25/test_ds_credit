@@ -205,3 +205,41 @@ def test_check_subject_mixed_languages():
     """Смешение языков — английский + русский."""
     matches, _, _ = check_subject("Поставка John Deere трактора")
     assert matches is True
+
+
+# --- Тесты новых категорий (iter 30-35) ---
+
+def test_check_subject_animal_husbandry_pass():
+    """Категория 'животноводство' — PASS."""
+    matches, _, _ = check_subject("Закупка кормов для КРС")
+    assert matches is True
+
+
+def test_check_subject_vegetables_pass():
+    """Категория 'овощи и фрукты' — PASS."""
+    matches, _, _ = check_subject("Поставка семян картофеля")
+    assert matches is True
+
+
+def test_check_subject_fish_farming_pass():
+    """Категория 'рыбоводство' — PASS."""
+    matches, _, _ = check_subject("Закупка мальков карпа для пруда")
+    assert matches is True
+
+
+def test_check_subject_forestry_pass():
+    """Категория 'лесное хозяйство' — PASS."""
+    matches, _, _ = check_subject("Лесовосстановительные работы")
+    assert matches is True
+
+
+def test_check_subject_feed_additives_pass():
+    """Расширенная категория 'корма' — БВМД, стартер."""
+    matches, _, _ = check_subject("Поставка БВМД для телят")
+    assert matches is True
+
+
+def test_check_subject_new_machinery_brands_pass():
+    """Расширенная категория 'техника' — New Holland, Claas."""
+    matches, _, _ = check_subject("Закупка комбайна Claas")
+    assert matches is True
