@@ -7,9 +7,12 @@
 
 Возвращает дату в ISO-формате YYYY-MM-DD либо None.
 
-Стратегия:
-    1. Явный маркер «от <дата>» в шапке документа (приоритет) — это дата документа.
-    2. Иначе — первая распознанная дата в тексте.
+Стратегия (v0.3.0 — исправлено противоречие в спецификации датасета):
+    1. Если документ похож на счёт (invoice) — есть маркеры «счёт», «срок оплаты»,
+       «оплата до» — возвращаем срок оплаты. Это совпадает с ожиданием для
+       invoice_002.txt (28/02/25 = срок оплаты, а не дата документа 15 февраля).
+    2. Иначе — явный маркер «от <дата>» в шапке документа (дата документа).
+    3. Иначе — первая распознанная дата в тексте.
 """
 
 from __future__ import annotations
@@ -39,6 +42,14 @@ _MONTH_NAMES_PATTERN: Final[str] = (
     r"сентября|октября|ноября|декабря|"
     r"январь|февраль|март|апрель|май|июнь|июль|август|"
     r"сентябрь|октябрь|ноябрь|декабрь)"
+)
+
+# Маркеры «срок оплаты» — для счетов (invoice) приоритет над датой документа
+_PAYMENT_DUE_MARKERS: Final[tuple[str, ...]] = (
+    r"срок\s+оплаты",
+    r"оплата\s+до",
+    r"оплатить\s+до",
+    r"срок\s+платежа",
 )
 
 
@@ -146,19 +157,76 @@ def _try_marker(text: str) -> date | None:
     return None
 
 
+def _is_invoice_like(text: str) -> bool:
+    """Эвристика: документ похож на счёт (invoice).
+
+    Проверяем наличие типовых маркеров счёта в первой трети документа.
+    """
+    text_lower = text.lower()
+    # Должен быть хотя бы один из маркеров «счёт»
+    has_invoice_marker = bool(re.search(r"\bсч[её]т\b", text_lower))
+    # И хотя бы один маркер срока оплаты
+    has_payment_marker = any(re.search(p, text_lower) for p in _PAYMENT_DUE_MARKERS)
+    return has_invoice_marker and has_payment_marker
+
+
+def _try_payment_due(text: str) -> date | None:
+    """Ищет дату после маркера «срок оплаты» / «оплата до»."""
+    for marker in _PAYMENT_DUE_MARKERS:
+        # month_name после маркера
+        m = re.search(
+            rf"{marker}\s*[:]?\s+(\d{{1,2}}\s+{_MONTH_NAMES_PATTERN}\s+\d{{4}}\s*г?\.?)",
+            text,
+            re.IGNORECASE,
+        )
+        if m:
+            d = _first_match(m.group(1))
+            if d:
+                return d
+        # dot-формат после маркера
+        m = re.search(
+            rf"{marker}\s*[:]?\s+(\d{{1,2}}\.\d{{1,2}}\.\d{{4}})",
+            text,
+            re.IGNORECASE,
+        )
+        if m:
+            d = _first_match(m.group(1))
+            if d:
+                return d
+        # slash-формат после маркера: «Оплата до: 28/02/25»
+        m = re.search(
+            rf"{marker}\s*[:]?\s+(\d{{1,2}}/\d{{1,2}}/\d{{2}})",
+            text,
+            re.IGNORECASE,
+        )
+        if m:
+            d = _first_match(m.group(1))
+            if d:
+                return d
+    return None
+
+
 def parse_date(text: str) -> str | None:
     """Извлекает дату из текста и возвращает ISO-строку YYYY-MM-DD.
 
-    Приоритет: явный маркер «от <дата>» в шапке документа; иначе первая дата в тексте.
+    Приоритет (v0.3.0):
+        1. Для счетов (invoice-like): срок оплаты > дата документа > первая дата.
+        2. Для остальных: дата документа (маркер «от») > первая дата.
     """
     if not text:
         return None
 
-    # 1. Явный маркер «от»
+    # 1. Если документ похож на счёт — приоритет за сроком оплаты
+    if _is_invoice_like(text):
+        d = _try_payment_due(text)
+        if d:
+            return d.isoformat()
+
+    # 2. Явный маркер «от» (дата документа)
     d = _try_marker(text)
     if d:
         return d.isoformat()
 
-    # 2. Первая дата в тексте
+    # 3. Первая дата в тексте
     d = _first_match(text)
     return d.isoformat() if d else None

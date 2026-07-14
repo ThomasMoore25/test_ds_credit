@@ -80,20 +80,10 @@ def test_dataset_extract(filename: str, expected: dict) -> None:
             f"{filename}: amount expected {expected['amount']}, got {result['amount']}"
         )
 
-    # date — см. KNOWN_ISSUE_DATE_INVOICE_002 ниже
-    if filename == "invoice_002.txt":
-        # Спецификация датасета противоречива: для invoice_001 ожидается дата
-        # документа (03.03.2025), а для invoice_002 — срок оплаты (28/02/25),
-        # хотя в шапке указана дата 15 февраля 2025 г. Наша функция возвращает
-        # дату документа (2025-02-15). Подробности — в RESULTS.md.
-        assert result["date"] in {"2025-02-15", "2025-02-28"}, (
-            f"{filename}: date expected 2025-02-15 (date of document) "
-            f"or 2025-02-28 (payment due), got {result['date']}"
-        )
-    else:
-        assert result["date"] == expected["date"], (
-            f"{filename}: date expected {expected['date']}, got {result['date']}"
-        )
+    # date
+    assert result["date"] == expected["date"], (
+        f"{filename}: date expected {expected['date']}, got {result['date']}"
+    )
 
     # inn
     assert result["inn"] == expected["inn"], (

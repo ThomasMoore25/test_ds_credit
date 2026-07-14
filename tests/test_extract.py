@@ -39,6 +39,31 @@ def test_extract_amount_spellout():
     assert extract("Стоимость услуг составляет девятьсот тысяч рублей 00/100.")["amount"] == 900_000.0
 
 
+def test_extract_amount_spellout_million():
+    """«Один миллион двести пятьдесят тысяч рублей» → 1_250_000.0"""
+    assert extract("Сумма: Один миллион двести пятьдесят тысяч рублей 00 копеек.")["amount"] == 1_250_000.0
+
+
+def test_extract_amount_spellout_billion():
+    """«два миллиарда рублей» → 2_000_000_000.0"""
+    assert extract("Сумма: два миллиарда рублей.")["amount"] == 2_000_000_000.0
+
+
+def test_extract_amount_spellout_polutora():
+    """«полтора миллиона рублей» → 1_500_000.0"""
+    assert extract("Сумма: полтора миллиона рублей.")["amount"] == 1_500_000.0
+
+
+def test_extract_amount_spellout_poltysyachi():
+    """«полтысячи рублей» → 500.0"""
+    assert extract("Сумма: полтысячи рублей.")["amount"] == 500.0
+
+
+def test_extract_amount_spellout_polmilliona():
+    """«полмиллиона рублей» → 500_000.0"""
+    assert extract("Сумма: полмиллиона рублей.")["amount"] == 500_000.0
+
+
 def test_extract_date_dot_format():
     """01.03.2025 → '2025-03-01'"""
     assert extract("Договор от 01.03.2025")["date"] == "2025-03-01"

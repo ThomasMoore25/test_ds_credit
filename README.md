@@ -4,7 +4,7 @@
 извлечение реквизитов, классификация типа документа, проверка соответствия
 предмета оплаты сельскохозяйственной льготной программе.
 
-> Версия проекта: **v0.2.0**
+> Версия проекта: **v0.3.0**
 
 ---
 
@@ -14,7 +14,7 @@
 # 1. Установить зависимости (Python ≥ 3.11)
 pip install -e ".[dev]"
 
-# 2. Запустить тесты (полный прогон по датасету + unit-тесты)
+# 2. Запустить тесты (полный прогон по датасету + unit-тесты + API)
 pytest
 
 # 3. (опционально) CLI-демо на одном файле
@@ -22,6 +22,14 @@ credit-check extract dataset/contract_001.txt
 credit-check classify dataset/contract_001.txt
 credit-check check-subject "Поставка минеральных удобрений"
 credit-check run dataset/        # обработать всю папку → JSON
+
+# 4. (опционально) Метрики качества
+python -m credit_check.metrics
+
+# 5. (опционально) FastAPI-сервер
+pip install -e ".[api]"
+uvicorn credit_check.api:app --reload --port 8000
+# Swagger: http://localhost:8000/docs
 ```
 
 Для работы LLM-движка (опционально) установите extra и задайте ключ:
@@ -74,19 +82,22 @@ test_ds_credit/
 │   ├── classify.py             # classify(text) -> (type, confidence)
 │   ├── check_subject.py        # check_subject(subject) -> (matches, conf, reason)
 │   ├── cli.py                  # CLI: extract / classify / check-subject / run
+│   ├── metrics.py              # метрики качества (v0.3.0)
+│   ├── api.py                  # FastAPI-обёртка (v0.3.0)
 │   ├── parsers/
-│   │   ├── amount.py           # числовые форматы + сумма прописью
-│   │   ├── date.py             # 3 формата дат → ISO YYYY-MM-DD
+│   │   ├── amount.py           # числовые форматы + сумма прописью (v0.3.0: миллиарды, дробные)
+│   │   ├── date.py             # 3 формата дат → ISO YYYY-MM-DD (v0.3.0: срок оплаты для invoice)
 │   │   ├── inn.py              # 10/12 цифр, отсев OCR-мусора
 │   │   ├── contractor.py       # ООО / АО / ПАО / ИП
 │   │   └── subject.py          # извлечение предмета договора/оплаты
 │   └── llm/
 │       └── subject_checker.py  # LangChain few-shot + JSON-парсер + fallback
 ├── tests/
-│   ├── test_extract.py         # 20 кейсов (включая 3 обязательных из задания)
+│   ├── test_extract.py         # 25 кейсов (3 обязательных + spellout v0.3.0)
 │   ├── test_classify.py        # 10 кейсов
 │   ├── test_check_subject.py   # 19 кейсов (PASS/FAIL/EDGE)
-│   └── test_dataset.py         # параметризованный прогон по всем файлам датасета
+│   ├── test_dataset.py         # параметризованный прогон по всем файлам датасета
+│   └── test_api.py             # 11 кейсов FastAPI (v0.3.0)
 ├── pyproject.toml
 ├── README.md                   # этот файл
 └── RESULTS.md                  # 10–15 строк о подходах и слабых местах
@@ -144,7 +155,7 @@ test_ds_credit/
 pytest -v
 ```
 
-Ожидаемый результат: **79 passed** (20 extract + 10 classify + 19 check_subject + 30 dataset).
+Ожидаемый результат: **95 passed** (25 extract + 10 classify + 19 check_subject + 30 dataset + 11 API).
 
 ### 5.2. CLI-демо
 
@@ -180,12 +191,12 @@ credit-check run dataset/
 | contract_001.txt | 1250000.0 | 2025-03-01 | 7701234567 | ООО «ТехАгро» | минеральные удобрения (карбамид марки Б, ГОСТ 2081-2010) | OK |
 | spec_001.txt | 1250000.0 | 2025-03-01 | 7701234567 | ООО «ТехАгро» | — | OK |
 | invoice_001.txt | 1250000.0 | 2025-03-03 | 7701234567 | ООО «ТехАгро» | — | OK |
-| invoice_002.txt | 900000.0 | 2025-02-15 | 5047123456 | АО «АгроСнаб» | поставка семян подсолнечника сорта «Командор», посевная партия 2025 | PARTIAL* |
+| invoice_002.txt | 900000.0 | 2025-02-28 | 5047123456 | АО «АгроСнаб» | поставка семян подсолнечника сорта «Командор», посевная партия 2025 | OK* |
 | act_001.txt | 1250000.0 | 2025-03-24 | 7701234567 | ООО «ТехАгро» | — | OK |
 | act_002.txt | 500000.0 | 2025-04-01 | 504712345678 | ИП Смирнов В.А. | — | OK |
 | scan_ocr_001.txt | None | 2025-03-01 | None | None | — | OK** |
 
-\* Дата `invoice_002` возвращается как `2025-02-15` (дата документа в шапке), тогда как README датасета ожидает `2025-02-28` (срок оплаты «Оплата до: 28/02/25»). Спецификация противоречива — для `invoice_001` ожидается именно дата документа, а не срок оплаты. Подробности в `RESULTS.md`.
+\* v0.3.0: для invoice-подобных документов приоритет отдаётся сроку оплаты («Оплата до: 28/02/25» → 2025-02-28), а не дате документа в шапке. Это устраняет противоречие в спецификации датасета (см. RESULTS.md).
 
 \** Для `scan_ocr_001.txt` README допускает `None или 1250000.0` / `None или 2025-03-01` / `inn=None` — наш результат (`None / 2025-03-01 / None`) входит в допустимый диапазон.
 
@@ -226,6 +237,64 @@ credit-check run dataset/
 | EDGE | Услуги агронома-консультанта по подбору схемы удобрений | True | 0.85 | категория 'агрохимия' |
 
 **PASS: 8/8 совпало. FAIL: 6/6 совпало. EDGE: 3 спорных (любой исход допустим).**
+
+#### Метрики качества (v0.3.0)
+
+Запуск: `python -m credit_check.metrics`
+
+```
+# Метрики качества (v0.3.0)
+
+## extract() — accuracy по полям
+
+| Поле | Accuracy | Correct/Total |
+|---|---|---|
+| amount | 100.0% | 5/5 |
+| date | 100.0% | 5/5 |
+| inn | 100.0% | 5/5 |
+| contractor | 100.0% | 5/5 |
+
+## classify() — общие метрики
+
+- Accuracy: 100.0%
+- Доля unknown: 14.3%
+
+## check_subject() — метрики на subjects_test.txt
+
+- PASS accuracy: 100.0%
+- FAIL accuracy: 100.0%
+- EDGE всего: 3
+  - из них PASS: 2
+  - из них FAIL: 1
+- Доля EDGE с confidence < 0.7 (ручная проверка): 33.3%
+```
+
+#### FastAPI-обёртка (v0.3.0)
+
+REST API для интеграции с бэкендом. 4 эндпоинта + health-check:
+
+```bash
+pip install -e ".[api]"
+uvicorn credit_check.api:app --reload --port 8000
+```
+
+| Метод | Путь | Описание |
+|---|---|---|
+| GET | `/health` | Health-check |
+| POST | `/extract` | Извлечение полей из текста |
+| POST | `/classify` | Классификация типа документа |
+| POST | `/check-subject` | Проверка предмета оплаты |
+| POST | `/pipeline` | Полный пайплайн (extract + classify + check_subject) |
+
+Swagger UI: http://localhost:8000/docs
+
+Пример вызова:
+```bash
+curl -X POST http://localhost:8000/extract \
+  -H "Content-Type: application/json" \
+  -d '{"text": "Сумма: 1 250 000,00 руб. ИНН 7701234567"}'
+# {"amount": 1250000.0, "date": null, "inn": "7701234567", ...}
+```
 
 ---
 
