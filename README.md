@@ -4,7 +4,7 @@
 извлечение реквизитов, классификация типа документа, проверка соответствия
 предмета оплаты сельскохозяйственной льготной программе.
 
-> Версия проекта: **v0.5.0**
+> Версия проекта: **v0.6.0**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -338,14 +338,14 @@ curl -X POST http://localhost:8000/extract \
 #### Docker
 ```bash
 # Сборка
-docker build -t credit-check:0.4.0 .
+docker build -t credit-check:0.6.0 .
 
 # Запуск (FastAPI на :8000)
-docker run --rm -p 8000:8000 credit-check:0.4.0
+docker run --rm -p 8000:8000 credit-check:0.6.0
 # Swagger: http://localhost:8000/docs
 
 # С LLM (опционально):
-docker run --rm -p 8000:8000 -e OPENAI_API_KEY=sk-... credit-check:0.4.0
+docker run --rm -p 8000:8000 -e OPENAI_API_KEY=sk-... credit-check:0.6.0
 ```
 
 ---

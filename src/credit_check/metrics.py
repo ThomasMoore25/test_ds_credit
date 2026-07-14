@@ -187,7 +187,7 @@ def _compute_edge_low_confidence_rate(text: str) -> float:
 
 def format_metrics() -> str:
     """Форматирует все метрики в строку для вывода."""
-    lines = ["# Метрики качества (v0.5.0)\n"]
+    lines = ["# Метрики качества (v0.6.0)\n"]
 
     lines.append("## extract() — accuracy по полям\n")
     lines.append("| Поле | Accuracy | Correct/Total |")
