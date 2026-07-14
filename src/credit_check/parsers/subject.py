@@ -45,6 +45,15 @@ _TABLE_HEADER_RE: Final[re.Pattern[str]] = re.compile(
     re.IGNORECASE,
 )
 
+# Нумерованный список работ в акте: «1. <работа> — <сумма> руб.»
+# Берём первый пункт как subject (основная работа).
+# ВАЖНО: ищем только длинное тире '—' (em dash) с пробелами, чтобы не путать
+# с дефисом в названиях типа «КАС-32».
+_NUMBERED_WORK_RE: Final[re.Pattern[str]] = re.compile(
+    r"^\s*\d+\.\s+(.{10,300}?)\s+—\s+\d",
+    re.MULTILINE | re.DOTALL,
+)
+
 
 def _extract_from_table(text: str) -> str | None:
     """Извлекает наименование товара из ASCII-таблицы спецификации/счёта.
@@ -123,7 +132,16 @@ def parse_subject(text: str) -> str | None:
     if table_subject:
         return table_subject
 
-    # 4. Шаблон «Предмет: поставка ...» (для счетов на услуги)
+    # 4. Нумерованный список работ в акте: «1. Внесение удобрений — 250 000 руб.»
+    m = _NUMBERED_WORK_RE.search(text)
+    if m:
+        candidate = m.group(1).strip().rstrip(".,;")
+        # Схлопываем переносы строк (работа может быть на нескольких строках)
+        candidate = re.sub(r"\s+", " ", candidate)
+        if len(candidate) >= 10:
+            return candidate
+
+    # 5. Шаблон «Предмет: поставка ...» (для счетов на услуги)
     m = _SUBJECT_POSTAVKA_RE.search(text)
     if m:
         candidate = m.group(1).strip().rstrip(".,;")
