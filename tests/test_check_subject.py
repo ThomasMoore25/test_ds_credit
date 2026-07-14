@@ -243,3 +243,69 @@ def test_check_subject_new_machinery_brands_pass():
     """Расширенная категория 'техника' — New Holland, Claas."""
     matches, _, _ = check_subject("Закупка комбайна Claas")
     assert matches is True
+
+
+# --- Дополнительные тесты (iter 40-50) ---
+
+def test_check_subject_complex_phrases():
+    """Сложные фразы с несколькими категориями."""
+    matches, conf, _ = check_subject("Поставка минеральных удобрений и семян подсолнечника")
+    assert matches is True
+    assert conf >= 0.85  # 2 категории → 0.92
+
+
+def test_check_subject_negative_with_no_keywords():
+    """Subject без ключевых слов → FAIL с низкой уверенностью."""
+    matches, conf, _ = check_subject("какой-то случайный текст")
+    assert matches is False
+    assert conf <= 0.6
+
+
+def test_check_subject_with_typo():
+    """Опечатка в слове — fuzzy matching должен справиться."""
+    matches, _, _ = check_subject("Поставка удобренийи карбамида")
+    assert matches is True
+
+
+def test_check_subject_english_subject():
+    """Английский subject — должен вернуть FAIL (не сельхоз-контекст)."""
+    matches, _, _ = check_subject("Office rent in Moscow")
+    assert matches is False
+
+
+def test_check_subject_mixed_subject():
+    """Смешанный subject — сельхоз + не сельхоз."""
+    matches, _, _ = check_subject("Поставка удобрений и аренда офиса")
+    # «офис» — сильное запрещённое, должно победить
+    assert matches is False
+
+
+def test_check_subject_agronomist_with_fertilizers():
+    """Агроном + удобрения — двойной сельхоз-контекст."""
+    matches, conf, _ = check_subject("Услуги агронома по подбору удобрений")
+    assert matches is True
+    assert conf >= 0.7
+
+
+def test_check_subject_vet_with_medicine():
+    """Ветеринар + лекарство — PASS (агро-контекст)."""
+    matches, _, _ = check_subject("Консультация ветеринара по лечению КРС")
+    assert matches is True
+
+
+def test_check_subject_insurance_harvest():
+    """Страхование урожая — PASS."""
+    matches, _, _ = check_subject("Страхование посевов от засухи")
+    assert matches is True
+
+
+def test_check_subject_field_work():
+    """Полевые работы — PASS."""
+    matches, _, _ = check_subject("Вспашка зяби под посев 2025")
+    assert matches is True
+
+
+def test_check_subject_plant_protection():
+    """СЗР — PASS."""
+    matches, _, _ = check_subject("Обработка посевов фунгицидом")
+    assert matches is True
