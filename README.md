@@ -8,7 +8,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![tests: 275 passed](https://img.shields.io/badge/tests-275%20passed-brightgreen.svg)](#51-запуск-тестов)
+[![tests: 290 passed](https://img.shields.io/badge/tests-290%20passed-brightgreen.svg)](#51-запуск-тестов)
 
 > ⚙️ **CI готов к активации**: workflow лежит в [`.github/ci.yml.example`](.github/ci.yml.example).
 > Для активации — переименовать в `.github/workflows/ci.yml` и запушить (требуется
