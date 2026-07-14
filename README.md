@@ -6,14 +6,13 @@
 
 > Версия проекта: **v0.5.0**
 
-[![CI](https://github.com/ThomasMoore25/test_ds_credit/actions/workflows/ci.yml/badge.svg)](https://github.com/ThomasMoore25/test_ds_credit/actions/workflows/ci.yml)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests: 98 passed](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)](#51-запуск-тестов)
 
-> ⚙️ **CI активируется вручную**: см. [`.github/README.md`](.github/README.md).
-> Workflow готов в `.github/ci.yml.example` — нужно перенести в `.github/workflows/`
-> (токен, использованный для пуша, не имеет scope `workflow`).
+> ⚙️ **CI готов к активации**: workflow лежит в [`.github/ci.yml.example`](.github/ci.yml.example).
+> Для активации — переименовать в `.github/workflows/ci.yml` и запушить (требуется
+> токен со scope `workflow`, либо через GitHub UI).
 
 ---
 
