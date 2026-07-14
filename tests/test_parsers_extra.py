@@ -263,3 +263,50 @@ def test_metrics_check_subject():
     assert "f1" in m
     assert m["pass_accuracy"] == 1.0
     assert m["fail_accuracy"] == 1.0
+
+
+# --- Тесты edge cases для новых парсеров (iter 75-80) ---
+
+def test_kpp_empty_string():
+    assert parse_kpp("") is None
+
+
+def test_kpp_wrong_length():
+    """КПП из 8 или 10 цифр — не валидный."""
+    assert parse_kpp("КПП 77010101") is None  # 8 цифр
+    assert parse_kpp("КПП 7701010123") is None  # 10 цифр
+
+
+def test_ogrn_empty():
+    assert parse_ogrn("") is None
+
+
+def test_bik_empty():
+    assert parse_bik("") is None
+
+
+def test_account_empty():
+    assert parse_account("") is None
+    assert parse_correspondent_account("") is None
+
+
+def test_email_invalid():
+    assert parse_email("not an email") is None
+    assert parse_email("@example.com") is None
+
+
+def test_phone_invalid():
+    assert parse_phone("12345") is None  # слишком короткий
+    assert parse_phone("не телефон") is None
+
+
+def test_doc_number_empty():
+    assert parse_doc_number("") is None
+
+
+def test_vat_no_rate():
+    assert parse_vat_rate("без НДС") is None  # нет явной ставки
+
+
+def test_currency_empty():
+    assert parse_currency("") is None
