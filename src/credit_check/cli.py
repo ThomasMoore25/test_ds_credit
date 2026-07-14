@@ -15,6 +15,7 @@ import sys
 from pathlib import Path
 
 from credit_check import classify, check_subject, extract
+from credit_check import __version__
 
 
 def _read(path: Path) -> str:
@@ -60,7 +61,8 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="credit-check", description=__doc__)
-    sub = p.add_subparsers(dest="cmd", required=True)
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    sub = p.add_subparsers(dest="cmd", required=False)
 
     p_e = sub.add_parser("extract", help="extract fields from a file")
     p_e.add_argument("file")
@@ -84,6 +86,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if not getattr(args, "cmd", None):
+        parser.print_help()
+        return 0
     return args.func(args)
 
 
