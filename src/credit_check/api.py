@@ -81,6 +81,13 @@ class HealthResponse(BaseModel):
     version: str = "0.6.0"
 
 
+class VersionResponse(BaseModel):
+    """Ответ /version."""
+    version: str
+    python_version: str
+    api_title: str
+
+
 # --- Эндпоинты -----------------------------------------------------------------
 
 
@@ -88,6 +95,18 @@ class HealthResponse(BaseModel):
 def health() -> HealthResponse:
     """Health-check."""
     return HealthResponse()
+
+
+@app.get("/version", response_model=VersionResponse, tags=["meta"])
+def version() -> VersionResponse:
+    """Возвращает версию API и Python."""
+    import sys
+    from credit_check import __version__
+    return VersionResponse(
+        version=__version__,
+        python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+        api_title=app.title,
+    )
 
 
 @app.post("/extract", response_model=ExtractResponse, tags=["pipeline"])
