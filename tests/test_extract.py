@@ -420,3 +420,29 @@ def test_extract_amount_spellout_desyat_tysyach():
 
 def test_extract_amount_spellout_sto_tysyach():
     assert extract("Сумма: сто тысяч рублей.")["amount"] == 100_000.0
+
+
+# --- Тесты разных сумм (iter 83-86) ---
+
+def test_extract_amount_with_kopecks():
+    """Сумма с копейками: 1 250 000,50 руб."""
+    r = extract("Сумма: 1 250 000,50 руб.")
+    assert r["amount"] == 1_250_000.5
+
+
+def test_extract_amount_no_kopecks_no_space():
+    """1250000 руб. без разделителя тысяч."""
+    r = extract("Сумма: 1250000 руб.")
+    assert r["amount"] == 1_250_000.0
+
+
+def test_extract_amount_rub_symbol_only():
+    """Только символ ₽ без 'руб'."""
+    r = extract("Сумма: 1 250 000,00 ₽")
+    assert r["amount"] == 1_250_000.0
+
+
+def test_extract_amount_english_with_rub():
+    """Английский формат с RUB."""
+    r = extract("Total: 1,250,000.00 RUB")
+    assert r["amount"] == 1_250_000.0
