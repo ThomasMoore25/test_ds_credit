@@ -92,6 +92,11 @@ _DATE_PATTERNS: Final[list[tuple[str, re.Pattern[str]]]] = [
         "dot_short",
         re.compile(r"\b(\d{1,2})\.(\d{1,2})\.(\d{2})\b"),
     ),
+    # 2025-03-01 — ISO YYYY-MM-DD
+    (
+        "iso",
+        re.compile(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b"),
+    ),
 ]
 
 
@@ -118,6 +123,8 @@ def _try_pattern(text: str, kind: str, m: re.Match[str]) -> date | None:
             int(m.group(2)),
             int(m.group(1)),
         )
+    if kind == "iso":
+        return _safe_date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
     return None
 
 
