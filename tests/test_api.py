@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import pytest
+from pathlib import Path
 
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
