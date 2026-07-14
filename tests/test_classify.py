@@ -209,3 +209,27 @@ def test_classify_unknown_for_pure_numbers():
     """Чистые числа → unknown."""
     doc_type, _ = classify("1234567890")
     assert doc_type == "unknown"
+
+
+def test_classify_one_word_invoice():
+    """Одно слово «счёт» — слишком мало, должно быть unknown или invoice."""
+    dt, _ = classify("счёт")
+    assert dt in {"invoice", "unknown"}
+
+
+def test_classify_one_word_contract():
+    """Одно слово «договор»."""
+    dt, _ = classify("договор")
+    assert dt in {"contract", "unknown"}
+
+
+def test_classify_one_word_spec():
+    """Одно слово «спецификация»."""
+    dt, _ = classify("спецификация")
+    assert dt in {"spec", "unknown"}
+
+
+def test_classify_one_word_act():
+    """Одно слово «акт»."""
+    dt, _ = classify("акт")
+    assert dt in {"act", "unknown"}
