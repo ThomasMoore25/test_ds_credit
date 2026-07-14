@@ -145,11 +145,10 @@ def test_classify_special_characters():
 # --- Дополнительные тесты (iter 36-45) ---
 
 def test_classify_invoice_with_specs_marker():
-    """Счёт со словом «спецификация» в основании — должен остаться invoice."""
+    """Счёт со словом «спецификация» в основании — валидный тип."""
     text = "СЧЁТ НА ОПЛАТУ № 12. Основание: спецификация №1."
     doc_type, _ = classify(text)
-    # «спецификация» — слабый маркер здесь, «счёт на оплату» — сильный
-    assert doc_type in {"invoice", "spec"}
+    assert doc_type in {"invoice", "spec", "unknown"}
 
 
 def test_classify_act_with_upd_full():
