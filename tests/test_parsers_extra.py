@@ -235,3 +235,31 @@ def test_parse_contractor_kfh():
 def test_parse_contractor_nko():
     from credit_check.parsers.contractor import parse_contractor_extended
     assert parse_contractor_extended("НКО «Фонд развития»") == "НКО «Фонд развития»"
+
+
+def test_metrics_avg_confidence():
+    from credit_check.metrics import compute_classify_avg_confidence
+    avg = compute_classify_avg_confidence()
+    assert 0.0 <= avg <= 1.0
+    # На нашем датасете все реальные документы имеют confidence > 0.9
+    assert avg > 0.9
+
+
+def test_metrics_classify():
+    from credit_check.metrics import compute_classify_metrics
+    m = compute_classify_metrics()
+    assert "accuracy" in m
+    assert "unknown_rate" in m
+    assert m["accuracy"] == 1.0  # 100% на датасете
+
+
+def test_metrics_check_subject():
+    from credit_check.metrics import compute_check_subject_metrics
+    m = compute_check_subject_metrics()
+    assert "pass_accuracy" in m
+    assert "fail_accuracy" in m
+    assert "precision" in m
+    assert "recall" in m
+    assert "f1" in m
+    assert m["pass_accuracy"] == 1.0
+    assert m["fail_accuracy"] == 1.0
