@@ -230,3 +230,13 @@ def test_api_check_subject_with_punctuation():
     response = client.post("/check-subject", json={"subject": "!!! Поставка удобрений !!!"})
     assert response.status_code == 200
     assert response.json()["matches"] is True
+
+
+def test_version_consistent_across_files():
+    """Версия должна быть одинаковой во всех файлах."""
+    from credit_check import __version__
+    response = client.get("/version")
+    assert response.json()["version"] == __version__
+    # Health endpoint тоже возвращает версию
+    health_response = client.get("/health")
+    assert health_response.json()["version"] == __version__
