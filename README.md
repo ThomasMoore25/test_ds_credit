@@ -93,32 +93,32 @@ test_ds_credit/
 │   ├── classify.py             # classify(text) -> (type, confidence)
 │   ├── check_subject.py        # check_subject(subject) -> (matches, conf, reason)
 │   ├── cli.py                  # CLI: extract / classify / check-subject / run
-│   ├── metrics.py              # метрики качества (v0.3.0)
-│   ├── api.py                  # FastAPI-обёртка (v0.3.0)
+│   ├── metrics.py              # метрики качества
+│   ├── api.py                  # FastAPI-обёртка
 │   ├── parsers/
-│   │   ├── amount.py           # числовые форматы + сумма прописью (v0.3.0: миллиарды, дробные)
-│   │   ├── date.py             # 3 формата дат → ISO YYYY-MM-DD (v0.3.0: срок оплаты для invoice)
+│   │   ├── amount.py           # числовые форматы + сумма прописью
+│   │   ├── date.py             # 3 формата дат → ISO YYYY-MM-DD
 │   │   ├── inn.py              # 10/12 цифр, отсев OCR-мусора
 │   │   ├── contractor.py       # ООО / АО / ПАО / ИП
 │   │   └── subject.py          # извлечение предмета договора/оплаты
 │   └── llm/
 │       └── subject_checker.py  # LangChain few-shot + JSON-парсер + fallback
 ├── tests/
-│   ├── test_extract.py         # 25 кейсов (3 обязательных + spellout v0.3.0)
+│   ├── test_extract.py         # 25 кейсов (3 обязательных + spellout)
 │   ├── test_classify.py        # 10 кейсов
-│   ├── test_check_subject.py   # 22 кейса (PASS/FAIL/EDGE + v0.4.0 agronomist)
+│   ├── test_check_subject.py   # 22 кейса (PASS/FAIL/EDGE + agronomist)
 │   ├── test_dataset.py         # параметризованный прогон по всем файлам датасета
-│   └── test_api.py             # 11 кейсов FastAPI (v0.3.0)
+│   └── test_api.py             # 11 кейсов FastAPI
 ├── scripts/
-│   └── generate_plots.py       # генерация 3 графиков для README (v0.5.0)
-├── docs/images/                # PNG-графики (v0.5.0)
+│   └── generate_plots.py       # генерация 3 графиков для README
+├── docs/images/                # PNG-графики
 ├── pyproject.toml
 ├── README.md                   # этот файл
 ├── RESULTS.md                  # подходы + эксперимент с порогом + компромиссы
-├── MOTIVATION.md               # ответы на 3 вопроса задания (v0.5.0)
-├── Dockerfile                  # одношаговая сборка FastAPI (v0.4.0)
-├── LICENSE                     # MIT (v0.4.0)
-└── .env.example                # пример переменных для LLM (v0.4.0)
+├── MOTIVATION.md               # ответы на 3 вопроса задания
+├── Dockerfile                  # одношаговая сборка FastAPI
+├── LICENSE                     # MIT
+└── .env.example                # пример переменных для LLM
 ```
 
 ### Пайплайн обработки
@@ -260,13 +260,11 @@ credit-check run dataset/
 
 **PASS: 8/8 совпало. FAIL: 6/6 совпало. EDGE: 3 спорных (любой исход допустим).**
 
-#### Метрики качества (v0.3.0)
-
+#### Метрики качества
 Запуск: `python -m credit_check.metrics`
 
 ```
-# Метрики качества (v0.3.0)
-
+# Метрики качества
 ## extract() — accuracy по полям
 
 | Поле | Accuracy | Correct/Total |
@@ -291,8 +289,7 @@ credit-check run dataset/
 - Доля EDGE с confidence < 0.7 (ручная проверка): 0.0%
 ```
 
-#### Эксперимент с порогом classify() (v0.5.0)
-
+#### Эксперимент с порогом classify()
 Задание требует обосновать выбор порога top1-top2. Провёл эксперимент: прогнал
 classify() на датасете с разными порогами (0.05 → 0.50) и посчитал число unknown
 и число ошибок классификации.
@@ -313,8 +310,7 @@ classify() на датасете с разными порогами (0.05 → 0.
 **Вывод:** 0.15 — оптимум. Меньше → риск ложной уверенности на мусоре. Больше →
 теряем реальные документы. Подробности — в [RESULTS.md](RESULTS.md#эксперимент-с-порогом-classify).
 
-#### FastAPI-обёртка (v0.3.0)
-
+#### FastAPI-обёртка
 REST API для интеграции с бэкендом. 4 эндпоинта + health-check:
 
 ```bash
@@ -340,8 +336,7 @@ curl -X POST http://localhost:8000/extract \
 # {"amount": 1250000.0, "date": null, "inn": "7701234567", ...}
 ```
 
-#### Docker (v0.4.0)
-
+#### Docker
 ```bash
 # Сборка
 docker build -t credit-check:0.4.0 .
