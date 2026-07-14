@@ -195,7 +195,8 @@ def _find_matched_word(subject: str, keyword: str) -> str:
     """Находит слово в subject, содержащее keyword (для человекочитаемого reason).
 
     Например: subject='Поставка минеральных удобрений', keyword='удобр'
-    → возвращает 'удобрений'. Если точного вхождения нет — возвращает keyword.
+    → возвращает 'удобрений'. Если точного вхождения нет — возвращает keyword
+    без последней буквы-основы (для 'офисн' → 'офис'), чтобы reason был читаемым.
     """
     s_lower = subject.lower()
     if keyword in s_lower:
@@ -203,6 +204,11 @@ def _find_matched_word(subject: str, keyword: str) -> str:
         for word in re.split(r"[^\w-]+", s_lower):
             if keyword in word and len(word) >= len(keyword):
                 return word
+    # Точного вхождения нет (fuzzy match). Возвращаем keyword без последней
+    # буквы-основы, чтобы получить читаемую форму: 'офисн' → 'офис',
+    # 'юридическ' → 'юридичес', 'административн' → 'административ'.
+    if len(keyword) > 4 and keyword[-1] in "нкия":
+        return keyword[:-1]
     return keyword
 
 
