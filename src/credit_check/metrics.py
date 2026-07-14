@@ -188,9 +188,22 @@ def compute_check_subject_metrics() -> dict[str, float]:
             label = "PASS" if matches else "FAIL"
             edge_distribution[label] += 1
 
+    # F1 для бинарной классификации PASS/FAIL
+    tp = pass_correct  # PASS предсказан как PASS
+    fn = pass_total - pass_correct  # PASS предсказан как FAIL
+    fp = fail_total - fail_correct  # FAIL предсказан как PASS
+    tn = fail_correct  # FAIL предсказан как FAIL
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
     return {
         "pass_accuracy": pass_correct / pass_total if pass_total else 0.0,
         "fail_accuracy": fail_correct / fail_total if fail_total else 0.0,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "confusion_matrix": {"tp": tp, "fp": fp, "fn": fn, "tn": tn},
         "edge_total": float(edge_total),
         "edge_pass_count": float(edge_distribution.get("PASS", 0)),
         "edge_fail_count": float(edge_distribution.get("FAIL", 0)),
