@@ -256,6 +256,13 @@ def format_metrics() -> str:
     sm = compute_check_subject_metrics()
     lines.append(f"- PASS accuracy: **{sm['pass_accuracy']:.1%}**")
     lines.append(f"- FAIL accuracy: **{sm['fail_accuracy']:.1%}**")
+    lines.append(f"- Precision: **{sm['precision']:.1%}**")
+    lines.append(f"- Recall: **{sm['recall']:.1%}**")
+    lines.append(f"- F1: **{sm['f1']:.1%}**")
+    cm = sm["confusion_matrix"]
+    lines.append(
+        f"- Confusion matrix: TP={cm['tp']} FP={cm['fp']} FN={cm['fn']} TN={cm['tn']}"
+    )
     lines.append(f"- EDGE всего: {int(sm['edge_total'])}")
     lines.append(f"  - из них PASS: {int(sm['edge_pass_count'])}")
     lines.append(f"  - из них FAIL: {int(sm['edge_fail_count'])}")
