@@ -341,3 +341,28 @@ def test_check_subject_cafe_fail():
 def test_check_subject_kfh_pass():
     matches, _, _ = check_subject("КФХ «Рассвет» — закупка удобрений")
     assert matches is True
+
+
+def test_check_subject_single_char():
+    """Один символ — не должен падать."""
+    matches, _, _ = check_subject("X")
+    assert matches is False
+
+
+def test_check_subject_only_spaces():
+    """Только пробелы."""
+    matches, conf, _ = check_subject("   ")
+    assert matches is False
+    assert 0.0 <= conf <= 1.0
+
+
+def test_check_subject_only_punctuation():
+    """Только знаки препинания."""
+    matches, _, _ = check_subject("!!! ??? ...")
+    assert matches is False
+
+
+def test_check_subject_newlines_only():
+    """Только переносы строк."""
+    matches, _, _ = check_subject("\n\n\n")
+    assert matches is False
