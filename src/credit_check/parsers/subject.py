@@ -3,10 +3,12 @@
 Извлекает короткое описание предмета из текста документа.
 Используется как вход для check_subject().
 
-Эвристики:
-    1. Поиск секции «Предмет:» / «Предмет договора:» / «Предмет оплаты:»
-    2. Поиск шаблона «Поставщик обязуется передать ... <предмет>»
-    3. Фоллбэк — None
+Эвристики (применяются по очереди, возвращается первое успешное):
+    1. Явный маркер «Предмет:» / «Предмет договора:» / «Предмет оплаты:»
+    2. Шаблон договора «передать в собственность Покупателя <предмет>»
+    3. Таблица с «Наименование товара» — для спецификаций и счетов
+    4. Шаблон «предмет: поставка/поставка ...» (lowercase)
+    5. Фоллбэк — None
 """
 
 from __future__ import annotations
@@ -27,8 +29,56 @@ _DELIVERY_RE: Final[re.Pattern[str]] = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 
-# «Стоимость услуг составляет ...» — для случаев, где предмет — услуга
-# (не извлекает предмет напрямую, но сигнализирует, что нужно искать выше)
+# Шаблон «Предмет: поставка ...» (часто в счетах на услуги)
+_SUBJECT_POSTAVKA_RE: Final[re.Pattern[str]] = re.compile(
+    r"Предмет\s*[:\-]\s*(поставка[^\n]{5,200}|выполнение[^\n]{5,200}|оказание[^\n]{5,200})",
+    re.IGNORECASE,
+)
+
+# Поиск «Наименование товара» в таблице и извлечение значения из следующей строки
+# Поддерживает ASCII-таблицы с разделителями | и +----
+_TABLE_HEADER_RE: Final[re.Pattern[str]] = re.compile(
+    r"\|\s*№\s*\|[^|]*Наименование(?:\s+товара)?[^|]*\|",
+    re.IGNORECASE,
+)
+
+
+def _extract_from_table(text: str) -> str | None:
+    """Извлекает наименование товара из ASCII-таблицы спецификации/счёта.
+
+    Таблицы в датасете имеют вид:
+        +---+----------------+---+---+
+        | № | Наименование   |...|
+        +---+----------------+---+---+
+        | 1 | Карбамид марки Б |...|
+        +---+----------------+---+---+
+
+    Возвращает содержимое ячейки «Наименование» из первой строки данных.
+    """
+    # Найдём заголовок таблицы с «Наименование»
+    header_match = _TABLE_HEADER_RE.search(text)
+    if not header_match:
+        return None
+
+    # Возьмём текст после заголовка и поищем первую строку данных
+    after_header = text[header_match.end():]
+    # Пропускаем разделитель (+---+---+)
+    after_header = re.sub(r"^[+\-|\s]+\n", "", after_header, count=1)
+
+    # Ищем строку вида | 1 | <наименование> | ... |
+    data_row = re.search(
+        r"\|\s*\d+\s*\|\s*([^|]{3,200})\s*\|",
+        after_header,
+    )
+    if not data_row:
+        return None
+
+    candidate = data_row.group(1).strip()
+    # Схлопываем переносы и пробелы
+    candidate = re.sub(r"\s+", " ", candidate)
+    if len(candidate) >= 5:
+        return candidate
+    return None
 
 
 def parse_subject(text: str) -> str | None:
@@ -36,28 +86,45 @@ def parse_subject(text: str) -> str | None:
 
     Возвращает короткую строку с описанием либо None.
     Переносы строк внутри предмета заменяются на пробелы.
+
+    Приоритет:
+        1. Явный маркер «Предмет:»
+        2. Шаблон договора «передать в собственность»
+        3. Таблица с «Наименование товара» (для spec/invoice)
+        4. Шаблон «Предмет: поставка/выполнение/оказание»
+        5. None
     """
     if not text:
         return None
 
-    # 1. Явный маркер
+    # 1. Явный маркер «Предмет:»
     m = _EXPLICIT_SUBJECT_RE.search(text)
     if m:
         candidate = m.group(1).strip().rstrip(".,;")
-        # Ограничиваем длину — берём до первой точки
         candidate = re.split(r"\.", candidate)[0].strip()
-        # Схлопываем переносы строк и лишние пробелы
         candidate = re.sub(r"\s+", " ", candidate)
         if len(candidate) >= 5:
             return candidate
 
-    # 2. Шаблон поставки
+    # 2. Шаблон поставки «передать в собственность Покупателя <предмет>»
     m = _DELIVERY_RE.search(text)
     if m:
         candidate = m.group(1).strip().rstrip(".,;")
-        # Убираем фразы типа «в лице...»
         candidate = re.split(r",\s*в\s+лице", candidate, flags=re.IGNORECASE)[0].strip()
-        # Схлопываем переносы строк и лишние пробелы
+        candidate = re.sub(r"\s+", " ", candidate)
+        if len(candidate) >= 5:
+            return candidate
+
+    # 3. Таблица с «Наименование товара» (спецификации, счета, УПД)
+    table_subject = _extract_from_table(text)
+    if table_subject:
+        return table_subject
+
+    # 4. Шаблон «Предмет: поставка ...» (для счетов на услуги)
+    m = _SUBJECT_POSTAVKA_RE.search(text)
+    if m:
+        candidate = m.group(1).strip().rstrip(".,;")
+        candidate = re.split(r"[\n\.]", candidate)[0].strip()
         candidate = re.sub(r"\s+", " ", candidate)
         if len(candidate) >= 5:
             return candidate
