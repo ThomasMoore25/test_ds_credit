@@ -204,3 +204,45 @@ def test_extract_returns_dict_typed():
     r = extract("Договор №1 от 01.03.2025, ООО «Ромашка», ИНН 7701234567")
     assert isinstance(r, dict)
     assert set(r.keys()) == {"amount", "date", "inn", "contractor", "subject"}
+
+
+# --- Edge cases (iter 26-30) ---
+
+def test_extract_empty_string_returns_none():
+    """Пустая строка → все поля None."""
+    r = extract("")
+    assert r["amount"] is None
+    assert r["date"] is None
+    assert r["inn"] is None
+    assert r["contractor"] is None
+    assert r["subject"] is None
+
+
+def test_extract_whitespace_only():
+    """Только пробелы → все поля None."""
+    r = extract("   \n\t  \n  ")
+    assert r["amount"] is None
+    assert r["inn"] is None
+
+
+def test_extract_very_long_text():
+    """Очень длинный текст не должен падать."""
+    text = "Договор № 1 от 01.03.2025, ООО «Ромашка», ИНН 7701234567. " * 1000
+    r = extract(text)
+    assert r["inn"] == "7701234567"
+    assert r["contractor"] == "ООО «Ромашка»"
+
+
+def test_extract_multiple_inn_returns_first():
+    """Если в тексте несколько ИНН — возвращается первый."""
+    text = "ИНН 7701234567, ИНН 5047123456"
+    r = extract(text)
+    assert r["inn"] == "7701234567"
+
+
+def test_extract_negative_amount_returns_none():
+    """Отрицательные числа не должны быть amount."""
+    r = extract("Сумма: -1250000.00 руб.")
+    # Отрицательная сумма — это либо None, либо положительное значение
+    # (мы не поддерживаем отрицательные суммы как amount)
+    assert r["amount"] is None or r["amount"] > 0
