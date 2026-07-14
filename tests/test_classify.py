@@ -101,3 +101,40 @@ def test_classify_returns_tuple():
 def test_classify_valid_type_value():
     doc_type, _ = classify("Договор поставки №1. Поставщик, покупатель.")
     assert doc_type in {"contract", "spec", "invoice", "act", "unknown"}
+
+
+# --- Edge cases (iter 27-31) ---
+
+def test_classify_single_word_unknown():
+    """Одно слово — слишком мало контекста, но не пусто."""
+    doc_type, _ = classify("договор")
+    # Слово «договор» — сильный маркер, но без контекста это может быть и unknown
+    assert doc_type in {"contract", "unknown"}
+
+
+def test_classify_only_numbers_unknown():
+    """Текст только из чисел → unknown."""
+    doc_type, _ = classify("123 456 789")
+    assert doc_type == "unknown"
+
+
+def test_classify_mixed_markers_unknown():
+    """Текст с маркерами нескольких классов → unknown (малый разрыв)."""
+    text = "договор спецификация счёт акт"
+    doc_type, _ = classify(text)
+    assert doc_type == "unknown"
+
+
+def test_classify_very_long_text_still_classifies():
+    """Длинный текст с явным маркером — должен классифицироваться."""
+    text = "СЧЁТ НА ОПЛАТУ № 12. " + "услуга " * 500
+    doc_type, _ = classify(text)
+    assert doc_type == "invoice"
+
+
+def test_classify_special_characters():
+    """Спецсимволы не должны ломать классификацию."""
+    text = "Договор поставки @#$% № 1 от 01.03.2025"
+    doc_type, _ = classify(text)
+    # Должен быть contract или unknown, но не падать
+    assert doc_type in {"contract", "spec", "invoice", "act", "unknown"}
