@@ -304,3 +304,25 @@ def test_extract_amount_zero_returns_zero():
     r = extract("Сумма: 0 руб.")
     # 0 может быть None (мы фильтруем value <= 0) — это OK
     assert r["amount"] is None or r["amount"] == 0.0
+
+
+# --- Тесты сокращений суммы (iter 54-55) ---
+
+def test_extract_amount_thousand_abbreviation():
+    """«1250 тыс. руб.» → 1 250 000."""
+    assert extract("Сумма: 1250 тыс. руб.")["amount"] == 1_250_000.0
+
+
+def test_extract_amount_million_abbreviation():
+    """«1.5 млн руб.» → 1 500 000."""
+    r = extract("Сумма: 1.5 млн руб.")
+    # 1.5 млн должно развернуться в 1 500 000
+    assert r["amount"] is not None
+    assert r["amount"] >= 1_000_000
+
+
+def test_extract_amount_billion_abbreviation():
+    """«2 млрд руб.» → 2 000 000 000."""
+    r = extract("Сумма: 2 млрд руб.")
+    assert r["amount"] is not None
+    assert r["amount"] >= 1_000_000_000
