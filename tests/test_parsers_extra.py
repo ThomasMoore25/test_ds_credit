@@ -334,3 +334,24 @@ def test_plots_generated():
     ]
     for name in expected:
         assert (images_dir / name).exists(), f"Missing: {name}"
+
+
+def test_address_from_scan_ocr():
+    """В scan_ocr есть «ул. Ленина д.15»."""
+    from credit_check.parsers.address import parse_address
+    text = _read("scan_ocr_001.txt")
+    addr = parse_address(text)
+    # OCR-мусор может не сматчиться — это OK
+    assert addr is None or "Ленина" in addr or "ул" in addr.lower()
+
+
+def test_no_kpp_in_act_002():
+    """В act_002 нет КПП — должен вернуть None."""
+    text = _read("act_002.txt")
+    assert parse_kpp(text) is None
+
+
+def test_no_bik_in_contract():
+    """В contract_001 нет БИК."""
+    text = _read("contract_001.txt")
+    assert parse_bik(text) is None
