@@ -171,3 +171,52 @@ def test_currency_kzt():
 def test_currency_none_when_no_currency():
     """Нет валюты → None."""
     assert parse_currency("обычный текст") is None
+
+
+# --- Тесты для парсера адреса (iter 57-58) ---
+
+def test_parse_address_basic():
+    from credit_check.parsers.address import parse_address
+    assert parse_address("г. Краснодар, ул. Ленина, д. 15") is not None
+    assert "Краснодар" in parse_address("г. Краснодар, ул. Ленина, д. 15")
+
+
+def test_parse_address_none():
+    from credit_check.parsers.address import parse_address
+    assert parse_address("без адреса") is None
+
+
+# --- Тесты для парсера номера документа (iter 59-60) ---
+
+def test_parse_doc_number_with_slash():
+    assert parse_doc_number("№ 47/2025") == "47/2025"
+
+
+def test_parse_doc_number_simple():
+    n = parse_doc_number("Счёт №12 от 03.03.2025")
+    assert n is not None
+    assert "12" in n
+
+
+# --- Тесты для VAT (iter 61-63) ---
+
+def test_vat_rate_10():
+    assert parse_vat_rate("НДС 10%") == 10
+
+
+def test_vat_rate_0():
+    assert parse_vat_rate("НДС 0%") == 0
+
+
+def test_vat_exempt_usn():
+    assert is_vat_exempt("НДС не облагается (УСН)") is True
+
+
+# --- Тесты для телефона (iter 64-65) ---
+
+def test_phone_with_spaces():
+    assert parse_phone("тел: +7 999 123 45 67") == "+79991234567"
+
+
+def test_phone_with_dashes():
+    assert parse_phone("тел: 8-999-123-45-67") == "+79991234567"
