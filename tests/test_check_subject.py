@@ -309,3 +309,35 @@ def test_check_subject_plant_protection():
     """СЗР — PASS."""
     matches, _, _ = check_subject("Обработка посевов фунгицидом")
     assert matches is True
+
+
+# --- Тесты новых запрещённых слов (iter 65-70) ---
+
+def test_check_subject_marketing_fail():
+    matches, _, _ = check_subject("Маркетинговые услуги для интернет-магазина")
+    assert matches is False
+
+
+def test_check_subject_smm_fail():
+    matches, _, _ = check_subject("SMM-продвижение в соцсетях")
+    assert matches is False
+
+
+def test_check_subject_target_fail():
+    matches, _, _ = check_subject("Настройка таргетированной рекламы")
+    assert matches is False
+
+
+def test_check_subject_restaurant_fail():
+    matches, _, _ = check_subject("Открытие ресторана в Краснодаре")
+    assert matches is False
+
+
+def test_check_subject_cafe_fail():
+    matches, _, _ = check_subject("Закупка оборудования для кафе")
+    assert matches is False
+
+
+def test_check_subject_kfh_pass():
+    matches, _, _ = check_subject("КФХ «Рассвет» — закупка удобрений")
+    assert matches is True
