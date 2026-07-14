@@ -11,6 +11,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Tests: 98 passed](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)](#51-запуск-тестов)
 
+> ⚙️ **CI активируется вручную**: см. [`.github/README.md`](.github/README.md).
+> Workflow готов в `.github/ci.yml.example` — нужно перенести в `.github/workflows/`
+> (токен, использованный для пуша, не имеет scope `workflow`).
+
 ---
 
 ## 1. Как запустить проект
