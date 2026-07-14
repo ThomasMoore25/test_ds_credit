@@ -50,3 +50,20 @@ def parse_contractor(text: str) -> str | None:
         return f"ИП {m.group(1).strip()}"
 
     return None
+
+
+# Дополнительные формы (СПК, КФХ) — расширение
+_SPK_RE = __import__('re').compile(
+    r"\b(СПК|КФХ|НКО)\s+[«\"„]([^»\"“]{1,80})[»\"“]",
+    __import__('re').IGNORECASE,
+)
+
+
+def parse_contractor_extended(text: str) -> str | None:
+    """Извлекает контрагента с поддержкой СПК, КФХ, НКО."""
+    if not text:
+        return None
+    m = _SPK_RE.search(text)
+    if m:
+        return f"{m.group(1)} «{m.group(2).strip()}»"
+    return None
