@@ -391,3 +391,41 @@ def test_check_subject_stress_many_keywords():
     m, c, _ = check_subject(subject)
     assert m is True
     assert c >= 0.85  # много категорий → высокая confidence
+
+
+# --- Тесты разных предметов (iter 85-90) ---
+
+def test_check_subject_seed_potatoes():
+    """Семена картофеля — PASS (категория 'семена' или 'овощи')."""
+    matches, _, _ = check_subject("Поставка семян картофеля сорта «Невский»")
+    assert matches is True
+
+
+def test_check_subject_mineral_fertilizers_specific():
+    """Карбамид — PASS."""
+    matches, _, _ = check_subject("Поставка карбамида марки Б, 50 тонн")
+    assert matches is True
+
+
+def test_check_subject_diesel_specific():
+    """Дизельное топливо — PASS."""
+    matches, _, _ = check_subject("Поставка дизельного топлива ДТ-З-К5")
+    assert matches is True
+
+
+def test_check_subject_tractor_parts():
+    """Запчасти для трактора — PASS."""
+    matches, _, _ = check_subject("Закупка запасных частей для трактора МТЗ-82")
+    assert matches is True
+
+
+def test_check_subject_plant_protection_specific():
+    """Фунгицид — PASS."""
+    matches, _, _ = check_subject("Поставка фунгицида Амистар Экстра")
+    assert matches is True
+
+
+def test_check_subject_crop_insurance_specific():
+    """Страхование урожая — PASS."""
+    matches, _, _ = check_subject("Страхование урожая яровой пшеницы")
+    assert matches is True
