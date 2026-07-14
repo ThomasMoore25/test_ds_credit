@@ -142,3 +142,32 @@ def test_vat_exempt_from_act_002():
     """В act_002 есть «НДС не облагается (УСН)»."""
     text = _read("act_002.txt")
     assert is_vat_exempt(text) is True
+
+
+def test_currency_rub_in_dataset():
+    """Все счета в датасете — в RUB."""
+    for fname in ["contract_001.txt", "invoice_001.txt", "act_001.txt"]:
+        text = _read(fname)
+        assert parse_currency(text) == "RUB"
+
+
+def test_currency_usd():
+    """Доллары."""
+    assert parse_currency("Сумма: $1000") == "USD"
+    assert parse_currency("Стоимость 100 долларов") == "USD"
+
+
+def test_currency_eur():
+    """Евро."""
+    assert parse_currency("Стоимость 100 EUR") == "EUR"
+    assert parse_currency("Сумма 500 евро") == "EUR"
+
+
+def test_currency_kzt():
+    """Тенге."""
+    assert parse_currency("Сумма: 50000 тенге") == "KZT"
+
+
+def test_currency_none_when_no_currency():
+    """Нет валюты → None."""
+    assert parse_currency("обычный текст") is None
