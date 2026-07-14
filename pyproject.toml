@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "test-ds-credit"
+version = "0.2.0"
+description = "AI-агент проверки целевого использования льготных кредитов — тестовое задание DS"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "DS intern candidate" }]
+keywords = ["ocr", "nlp", "extract", "classify", "agriculture", "credit"]
+
+dependencies = [
+    "rapidfuzz>=3.6,<4.0",
+]
+
+[project.optional-dependencies]
+llm = [
+    "langchain>=0.2,<0.4",
+    "langchain-openai>=0.1,<0.3",
+]
+dev = [
+    "pytest>=7.4,<9.0",
+    "pytest-cov>=4.0,<6.0",
+]
+
+[project.scripts]
+credit-check = "credit_check.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.4"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--tb=short",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
