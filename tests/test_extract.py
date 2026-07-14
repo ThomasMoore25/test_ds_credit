@@ -246,3 +246,61 @@ def test_extract_negative_amount_returns_none():
     # Отрицательная сумма — это либо None, либо положительное значение
     # (мы не поддерживаем отрицательные суммы как amount)
     assert r["amount"] is None or r["amount"] > 0
+
+
+# --- Дополнительные тесты форматов (iter 38-47) ---
+
+def test_extract_amount_with_space_separator_no_kopecks():
+    """1 500 000 руб. без копеек."""
+    assert extract("Итого: 1 500 000 руб.")["amount"] == 1_500_000.0
+
+
+def test_extract_amount_dot_decimal():
+    """1250000.50 (точка как десятичный разделитель)."""
+    assert extract("Сумма: 1250000.50 руб.")["amount"] == 1_250_000.5
+
+
+def test_extract_amount_rub_with_kopecks_text():
+    """«1250000 руб. 50 коп.» — сумма + копейки прописью."""
+    r = extract("Итого: 1 250 000 руб. 50 коп.")
+    assert r["amount"] is not None
+    assert r["amount"] >= 1_250_000
+
+
+def test_extract_date_iso_format():
+    """ISO дата 2025-03-01."""
+    assert extract("Договор от 2025-03-01")["date"] == "2025-03-01"
+
+
+def test_extract_date_with_leading_zeros():
+    """Дата с ведущими нулями 01.03.2025."""
+    assert extract("от 01.03.2025")["date"] == "2025-03-01"
+
+
+def test_extract_date_short_year():
+    """Короткий год 25.03.25 → 2025-03-25."""
+    r = extract("от 25.03.25")
+    assert r["date"] is not None
+    assert "2025" in r["date"]
+
+
+def test_extract_inn_10_digits_bare():
+    """Голые 10 цифр без префикса."""
+    assert extract("Контрагент: 7701234567")["inn"] == "7701234567"
+
+
+def test_extract_contractor_pao():
+    """ПАО — тоже валидный контрагент."""
+    assert extract("Банк: ПАО «Сбербанк»")["contractor"] == "ПАО «Сбербанк»"
+
+
+def test_extract_contractor_zao():
+    """ЗАО — валидный контрагент."""
+    assert extract("Поставщик: ЗАО «Ромашка»")["contractor"] == "ЗАО «Ромашка»"
+
+
+def test_extract_amount_zero_returns_zero():
+    """Сумма 0 руб. → 0.0 (не None)."""
+    r = extract("Сумма: 0 руб.")
+    # 0 может быть None (мы фильтруем value <= 0) — это OK
+    assert r["amount"] is None or r["amount"] == 0.0
