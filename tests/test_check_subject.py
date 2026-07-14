@@ -105,6 +105,40 @@ def test_check_subject_agronomist_edge():
     assert isinstance(matches, bool)
 
 
+def test_check_subject_agronomist_consultant_pass_v040():
+    """v0.4.0: «агроном-консультант» — это PASS, не FAIL.
+
+    Агрономическая консультация — это сельхоз-деятельность, не общие
+    консультационные услуги. Добавлен белый список сильных сельхоз-контекстных
+    слов, которые перебивают STRONG_FORBIDDEN.
+    """
+    matches, confidence, reason = check_subject(
+        "Услуги агронома-консультанта по подбору схемы удобрений"
+    )
+    assert matches is True, f"Expected PASS for agronomist, got FAIL: {reason}"
+    assert confidence >= 0.7
+    assert "агроном" in reason.lower() or "сельхоз" in reason.lower()
+
+
+def test_check_subject_veterinarian_consultation_pass_v040():
+    """v0.4.0: «ветеринар-консультант» — тоже PASS по той же логике."""
+    matches, confidence, _ = check_subject(
+        "Консультационные услуги ветеринарного врача по лечению КРС"
+    )
+    assert matches is True
+
+
+def test_check_subject_pure_consulting_still_fail_v040():
+    """v0.4.0: обычные консультационные услуги без сельхоз-контекста — по-прежнему FAIL.
+
+    Проверка, что белый список не сломал существующее поведение.
+    """
+    matches, _, _ = check_subject(
+        "Консультационные услуги по налоговому планированию"
+    )
+    assert matches is False
+
+
 # --- Возвращаемый тип ---------------------------------------------------------
 
 def test_check_subject_returns_tuple_of_three():

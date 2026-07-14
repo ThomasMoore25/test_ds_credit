@@ -154,6 +154,29 @@ _STRONG_FORBIDDEN: Final[tuple[str, ...]] = (
     "аудит",
 )
 
+# v0.4.0: Сильные сельхоз-контекстные слова — перебивают STRONG_FORBIDDEN.
+# Если в предмете есть хотя бы одно из них, то запрещённые слова вроде
+# «консультационн» НЕ вызывают однозначный отказ. Это исправляет EDGE-кейс
+# «услуги агронома-консультанта» — агрономическая консультация относится
+# к сельхоз-деятельности, а не к общим консультационным услугам.
+_STRONG_AGRI_CONTEXT: Final[tuple[str, ...]] = (
+    "агроном",
+    "агрохимик",
+    "агроинженер",
+    "ветеринар",
+    "зоотехник",
+    "фермерск",
+    "сельхоз",
+    "сельск хозя",
+    "полевод",
+    "животновод",
+    "растениевод",
+    "семеновод",
+    "почвовед",
+    "агролес",
+    "мелиорат",
+)
+
 # Порог fuzzy-совпадения для keyword matching
 _FUZZY_THRESHOLD: Final[int] = 80  # 0..100, partial_ratio
 
@@ -173,21 +196,28 @@ def _fallback_check(subject: str) -> tuple[bool, float, str]:
     v0.3.0: если в предмете есть СИЛЬНОЕ запрещённое слово — однозначный FAIL
     с высокой уверенностью, даже если есть совпадение с разрешённой категорией.
     Это устраняет ложные PASS на EDGE-кейсах типа «уборка административного здания».
+
+    v0.4.0: если есть СИЛЬНОЕ сельхоз-контекстное слово (агроном, ветеринар, и т.п.),
+    то STRONG_FORBIDDEN не срабатывает — это исправляет EDGE-кейс «агроном-консультант».
     """
     s = subject.lower().strip()
 
     if not s:
         return (False, 0.5, "пустой предмет оплаты")
 
-    # 1. Сначала проверяем СИЛЬНЫЕ запрещённые слова — приоритет над всем
-    strong_forbidden_hits = [kw for kw in _STRONG_FORBIDDEN if _match_keyword(s, kw)]
-    if strong_forbidden_hits:
-        kw = strong_forbidden_hits[0]
-        return (
-            False,
-            0.92,
-            f"предмет явно не относится к сельхоз-деятельности ('{kw}')",
-        )
+    # 1. Проверяем СИЛЬНЫЕ сельхоз-контекстные слова — они перебивают запрещённые
+    agri_context_hits = [kw for kw in _STRONG_AGRI_CONTEXT if _match_keyword(s, kw)]
+
+    # 2. СИЛЬНЫЕ запрещённые — срабатывают, только если НЕТ agri_context
+    if not agri_context_hits:
+        strong_forbidden_hits = [kw for kw in _STRONG_FORBIDDEN if _match_keyword(s, kw)]
+        if strong_forbidden_hits:
+            kw = strong_forbidden_hits[0]
+            return (
+                False,
+                0.92,
+                f"предмет явно не относится к сельхоз-деятельности ('{kw}')",
+            )
 
     # 2. Общие запрещённые
     forbidden_hits = [kw for kw in _FORBIDDEN_KEYWORDS if _match_keyword(s, kw)]
@@ -205,6 +235,17 @@ def _fallback_check(subject: str) -> tuple[bool, float, str]:
         # Уверенность зависит от числа совпавших категорий (1 = 0.85, ≥2 = 0.92)
         confidence = 0.92 if len(matched_categories) >= 2 else 0.85
         return (True, confidence, f"предмет относится к категории '{cat.name}'")
+
+    # v0.4.0: если есть agri_context (агроном, ветеринар, и т.п.) — это PASS,
+    # даже если ни одна категория не сматчилась и даже если есть forbidden_hits.
+    # Агроном-консультант — это сельхоз-деятельность, не «консультационные услуги».
+    if agri_context_hits:
+        kw = agri_context_hits[0]
+        return (
+            True,
+            0.85,
+            f"предмет относится к сельхоз-деятельности (контекст: '{kw}')",
+        )
 
     if forbidden_hits and not matched_categories:
         kw = forbidden_hits[0]

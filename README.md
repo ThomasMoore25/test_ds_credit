@@ -4,7 +4,12 @@
 извлечение реквизитов, классификация типа документа, проверка соответствия
 предмета оплаты сельскохозяйственной льготной программе.
 
-> Версия проекта: **v0.3.0**
+> Версия проекта: **v0.4.0**
+
+[![CI](https://github.com/ThomasMoore25/test_ds_credit/actions/workflows/ci.yml/badge.svg)](https://github.com/ThomasMoore25/test_ds_credit/actions/workflows/ci.yml)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Tests: 98 passed](https://img.shields.io/badge/tests-98%20passed-brightgreen.svg)](#51-запуск-тестов)
 
 ---
 
@@ -155,7 +160,7 @@ test_ds_credit/
 pytest -v
 ```
 
-Ожидаемый результат: **95 passed** (25 extract + 10 classify + 19 check_subject + 30 dataset + 11 API).
+Ожидаемый результат: **98 passed** (25 extract + 10 classify + 22 check_subject + 30 dataset + 11 API).
 
 ### 5.2. CLI-демо
 
@@ -294,6 +299,20 @@ curl -X POST http://localhost:8000/extract \
   -H "Content-Type: application/json" \
   -d '{"text": "Сумма: 1 250 000,00 руб. ИНН 7701234567"}'
 # {"amount": 1250000.0, "date": null, "inn": "7701234567", ...}
+```
+
+#### Docker (v0.4.0)
+
+```bash
+# Сборка
+docker build -t credit-check:0.4.0 .
+
+# Запуск (FastAPI на :8000)
+docker run --rm -p 8000:8000 credit-check:0.4.0
+# Swagger: http://localhost:8000/docs
+
+# С LLM (опционально):
+docker run --rm -p 8000:8000 -e OPENAI_API_KEY=sk-... credit-check:0.4.0
 ```
 
 ---

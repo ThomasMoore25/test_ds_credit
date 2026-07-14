@@ -29,7 +29,7 @@ from credit_check import check_subject, classify, extract
 app = FastAPI(
     title="Credit Check API",
     description="AI-агент проверки целевого использования льготных кредитов",
-    version="0.3.0",
+    version="0.4.0",
 )
 
 
@@ -78,7 +78,7 @@ class PipelineResponse(BaseModel):
 class HealthResponse(BaseModel):
     """Health-check ответ."""
     status: str = "ok"
-    version: str = "0.3.0"
+    version: str = "0.4.0"
 
 
 # --- Эндпоинты -----------------------------------------------------------------
