@@ -4,8 +4,7 @@ import re
 from typing import Final
 
 _ADDRESS_PATTERN: Final[re.Pattern[str]] = re.compile(
-    r"((?:г\.\s*|г\s+|ул\.\s*|ул\s+|д\.\s*|д\s+|обл\.\s*|обл\s+|р-н\s+|пер\.\s*|пер\s+|пр-т\s+|наб\.\s*)"
-    r"[А-Яа-яЁё\s\.,\-0-9/]{5,200}?(?=\s*(?:ИНН|КПП|ОГРН|БИК|р/с|к/с|тел|факс|email|@|$|\n))",
+    r"(г\.\s*[А-Яа-яЁё\-]+\s*,?\s*ул\.\s*[А-Яа-яЁё\-]+\s*,?\s*д\.\s*\d+)",
     re.IGNORECASE,
 )
 
