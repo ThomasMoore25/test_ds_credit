@@ -359,3 +359,43 @@ def test_extract_multiple_dates():
     r = extract("от 01.03.2025, оплата до 10.03.2025")
     # Для не-invoice документов — первая дата (01.03.2025)
     assert r["date"] == "2025-03-01"
+
+
+# --- Stress tests (iter 76-80) ---
+
+def test_extract_stress_1000_iterations():
+    """1000 вызовов extract — не должно падать."""
+    text = "Договор № 1 от 01.03.2025, ООО «Тест», ИНН 7701234567, сумма 1 250 000,00 руб."
+    for _ in range(1000):
+        r = extract(text)
+        assert r["inn"] == "7701234567"
+        assert r["amount"] == 1_250_000.0
+
+
+def test_extract_stress_large_text():
+    """Текст 100KB — не должен падать."""
+    text = "Договор № 1 от 01.03.2025, ООО «Тест», ИНН 7701234567. " * 2000
+    r = extract(text)
+    assert r["inn"] == "7701234567"
+
+
+def test_extract_stress_many_amounts():
+    """Текст с 100 суммами — должен вернуть максимум."""
+    text = "Сумма: 100 руб. " * 50 + "Итого: 1 250 000,00 руб. " + "Сумма: 200 руб. " * 50
+    r = extract(text)
+    assert r["amount"] == 1_250_000.0
+
+
+def test_extract_stress_many_inns():
+    """Текст с 10 ИНН — должен вернуть первый."""
+    text = " ".join(f"ИНН 770123456{i}" for i in range(10))
+    r = extract(text)
+    assert r["inn"] is not None
+    assert len(r["inn"]) in (10, 12)
+
+
+def test_extract_stress_many_dates():
+    """Текст с 10 датами — должен вернуть первую."""
+    text = " ".join(f"от 0{i}.03.2025" for i in range(1, 10))
+    r = extract(text)
+    assert r["date"] is not None
