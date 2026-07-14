@@ -105,6 +105,39 @@ def compute_extract_metrics() -> dict[str, FieldMetric]:
     return counters
 
 
+def compute_extract_precision() -> dict[str, float]:
+    """Считает precision по каждому полю extract().
+
+    Precision = TP / (TP + FP), где:
+        TP — поле извлечено и совпадает с ожидаемым
+        FP — поле извлечено, но не совпадает (включая None vs not-None)
+    Для полей, где expected = None, считаем TP = поле None, FP = поле not-None.
+    """
+    counters = {f: {"tp": 0, "fp": 0} for f in ("amount", "date", "inn", "contractor")}
+    for fname, expected in _EXPECTED_EXTRACT.items():
+        text = _read(fname)
+        result = extract(text)
+        for field in counters:
+            got = result[field]
+            want = expected[field]
+            if field == "amount":
+                if got is None and want is None:
+                    counters[field]["tp"] += 1
+                elif got is not None and want is not None and abs(got - want) < 0.01:
+                    counters[field]["tp"] += 1
+                else:
+                    counters[field]["fp"] += 1
+            else:
+                if got == want:
+                    counters[field]["tp"] += 1
+                else:
+                    counters[field]["fp"] += 1
+    return {
+        f: (v["tp"] / (v["tp"] + v["fp"]) if (v["tp"] + v["fp"]) > 0 else 0.0)
+        for f, v in counters.items()
+    }
+
+
 def compute_classify_metrics() -> dict[str, float]:
     """Считает accuracy и долю unknown для classify()."""
     correct = 0
@@ -194,6 +227,12 @@ def format_metrics() -> str:
     lines.append("|---|---|---|")
     for m in compute_extract_metrics().values():
         lines.append(f"| {m.field} | {m.accuracy:.1%} | {m.correct}/{m.total} |")
+
+    lines.append("\n## extract() — precision по полям\n")
+    lines.append("| Поле | Precision |")
+    lines.append("|---|---|")
+    for f, p in compute_extract_precision().items():
+        lines.append(f"| {f} | {p:.1%} |")
 
     lines.append("\n## classify() — общие метрики\n")
     cm = compute_classify_metrics()
