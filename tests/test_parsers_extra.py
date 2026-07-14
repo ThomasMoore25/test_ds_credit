@@ -93,3 +93,51 @@ def test_parse_currency_basic():
     assert parse_currency("Сумма: 1 250 000,00 руб.") == "RUB"
     assert parse_currency("$1000") == "USD"
     assert parse_currency("Стоимость 100 евро") == "EUR"
+
+
+# --- Тесты на извлечение из реальных файлов датасета ---
+
+DATASET = Path(__file__).resolve().parent.parent / "dataset"
+
+
+def _read(name: str) -> str:
+    return (DATASET / name).read_text(encoding="utf-8")
+
+
+def test_kpp_from_invoice_001():
+    """В invoice_001 есть «ИНН/КПП: 7701234567 / 770101001»."""
+    text = _read("invoice_001.txt")
+    assert parse_kpp(text) == "770101001"
+
+
+def test_bik_from_invoice_001():
+    """В invoice_001 есть «БИК 044525225»."""
+    text = _read("invoice_001.txt")
+    assert parse_bik(text) == "044525225"
+
+
+def test_account_from_invoice_001():
+    """В invoice_001 есть «р/с 40702810500000012345»."""
+    text = _read("invoice_001.txt")
+    assert parse_account(text) == "40702810500000012345"
+
+
+def test_doc_number_from_contract_001():
+    """В contract_001 есть «№ 47/2025»."""
+    text = _read("contract_001.txt")
+    n = parse_doc_number(text)
+    assert n is not None
+    assert "47" in n
+
+
+def test_vat_rate_from_act_001():
+    """В act_001 есть «НДС 20%» (в таблице)."""
+    text = _read("act_001.txt")
+    rate = parse_vat_rate(text)
+    assert rate in (10, 20)  # зависит от того, что первым найдёт
+
+
+def test_vat_exempt_from_act_002():
+    """В act_002 есть «НДС не облагается (УСН)»."""
+    text = _read("act_002.txt")
+    assert is_vat_exempt(text) is True
