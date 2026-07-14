@@ -366,3 +366,28 @@ def test_check_subject_newlines_only():
     """Только переносы строк."""
     matches, _, _ = check_subject("\n\n\n")
     assert matches is False
+
+
+# --- Stress tests ---
+
+def test_check_subject_stress_100_iterations():
+    """100 вызовов check_subject."""
+    for _ in range(100):
+        m, c, _ = check_subject("Поставка удобрений")
+        assert m is True
+
+
+def test_check_subject_stress_long_subject():
+    """Subject 10KB."""
+    subject = "Поставка удобрений " + "карбамид " * 1000
+    m, _, _ = check_subject(subject)
+    assert m is True
+
+
+def test_check_subject_stress_many_keywords():
+    """Subject с 50 сельхоз-категориями сразу."""
+    keywords = ["удобрения", "семена", "трактор", "дизель", "запчасти", "корма", "агрохимия"]
+    subject = "Поставка " + " ".join(keywords * 10)
+    m, c, _ = check_subject(subject)
+    assert m is True
+    assert c >= 0.85  # много категорий → высокая confidence
