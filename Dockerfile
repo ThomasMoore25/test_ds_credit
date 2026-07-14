@@ -1,21 +1,21 @@
 # Dockerfile для credit_check FastAPI.
 #
 # Сборка:
-#   docker build -t credit-check:0.6.0 .
+#   docker build -t credit-check:0.7.0 .
 #
 # Запуск:
-#   docker run --rm -p 8000:8000 credit-check:0.6.0
+#   docker run --rm -p 8000:8000 credit-check:0.7.0
 #   # Swagger UI: http://localhost:8000/docs
 #
 # С LLM (опционально):
-#   docker run --rm -p 8000:8000 -e OPENAI_API_KEY=sk-... credit-check:0.6.0
+#   docker run --rm -p 8000:8000 -e OPENAI_API_KEY=sk-... credit-check:0.7.0
 
 FROM python:3.11-slim AS base
 
 # Системные зависимости минимальны — только то, что нужно для работы FastAPI.
 # tesseract/poppler НЕ ставим — см. RESULTS.md (OCR out of scope для тестового).
 LABEL org.opencontainers.image.title="credit-check"
-LABEL org.opencontainers.image.version="0.6.0"
+LABEL org.opencontainers.image.version="0.7.0"
 LABEL org.opencontainers.image.description="AI-агент проверки целевого использования льготных кредитов"
 
 WORKDIR /app
