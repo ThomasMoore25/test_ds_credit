@@ -65,6 +65,36 @@ _NUMERIC_PATTERNS: Final[list[re.Pattern[str]]] = [
     ),
 ]
 
+# Сокращения: «тыс. руб.», «млн руб.», «млрд руб.»
+# Преобразуем в полные числа: 1250 тыс. руб. → 1 250 000 руб.
+_ABBREVIATION_RE: Final[re.Pattern[str]] = re.compile(
+    r"(\d+(?:[.,]\d+)?)\s*(тыс\.|млн\.|млрд\.)\s*руб",
+    re.IGNORECASE,
+)
+
+_ABBREVIATION_MULTIPLIER: Final[dict[str, float]] = {
+    "тыс.": 1_000,
+    "млн.": 1_000_000,
+    "млрд.": 1_000_000_000,
+}
+
+
+def _expand_abbreviation(text: str) -> str | None:
+    """Заменяет «1250 тыс. руб.» на «1 250 000 руб.» в тексте.
+    Возвращает модифицированный текст или None, если сокращений нет.
+    """
+    def replace(m: re.Match[str]) -> str:
+        num = float(m.group(1).replace(",", "."))
+        mult = _ABBREVIATION_MULTIPLIER[m.group(2).lower()]
+        result = num * mult
+        if result == int(result):
+            return f"{int(result)} руб"
+        return f"{result} руб"
+
+    new_text, count = _ABBREVIATION_RE.subn(replace, text)
+    return new_text if count > 0 else None
+
+
 # Шаблон суммы прописью — охватывает базовые числительные до триллионов.
 # Между числительными и словом «рублей» допускается закрывающая скобка (для
 # формата «1 250 000,00 (Один миллион двести пятьдесят тысяч) рублей»).
@@ -259,28 +289,34 @@ def parse_amount(text: str) -> float | None:
     Сумма прописью («девятьсот тысяч рублей») засчитывается и без числового
     контекста — она сама по себе является надёжным сигналом.
 
+    Поддержка сокращений: «1250 тыс. руб.» → 1 250 000, «1.5 млн руб.» → 1 500 000.
+
     Финальный выбор — максимум из всех валидных кандидатов
     (числовых и прописью), т.к. итоговая сумма документа обычно наибольшая.
     """
     if not text:
         return None
 
+    # Расширяем сокращения «тыс./млн./млрд. руб.» в полные числа
+    expanded = _expand_abbreviation(text)
+    text_to_search = expanded if expanded else text
+
     candidates: list[float] = []
 
     # 1. Числовые кандидаты с контекстом
     for pattern in _NUMERIC_PATTERNS:
-        for m in pattern.finditer(text):
+        for m in pattern.finditer(text_to_search):
             raw = m.group(0)
             value = _numeric_match_to_float(raw)
             if value is None or value <= 0:
                 continue
             # ТРЕБУЕМ контекст — иначе это не сумма, а случайное число
-            if not _has_context(text, m.start(), m.end()):
+            if not _has_context(text_to_search, m.start(), m.end()):
                 continue
             candidates.append(value)
 
     # 2. Кандидаты прописью
-    for sm in _SPELL_OUT_RE.finditer(text):
+    for sm in _SPELL_OUT_RE.finditer(text_to_search):
         value = _spellout_to_int(sm.group(0))
         if value is not None and value > 0:
             candidates.append(float(value))
