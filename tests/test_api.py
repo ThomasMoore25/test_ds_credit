@@ -141,3 +141,62 @@ def test_version_endpoint() -> None:
     assert "python_version" in data
     assert "api_title" in data
     assert data["api_title"] == "Credit Check API"
+
+
+# --- Тесты API на реальных файлах (iter 60-65) ---
+
+DATASET = Path(__file__).resolve().parent.parent / "dataset"
+
+
+def _read(name: str) -> str:
+    return (DATASET / name).read_text(encoding="utf-8")
+
+
+def test_api_extract_contract_001():
+    """API extract на contract_001.txt."""
+    text = _read("contract_001.txt")
+    response = client.post("/extract", json={"text": text})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["amount"] == 1_250_000.0
+    assert data["inn"] == "7701234567"
+    assert data["contractor"] == "ООО «ТехАгро»"
+
+
+def test_api_classify_contract_001():
+    """API classify на contract_001.txt."""
+    text = _read("contract_001.txt")
+    response = client.post("/classify", json={"text": text})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["doc_type"] == "contract"
+
+
+def test_api_pipeline_invoice_002():
+    """API pipeline на invoice_002.txt — должен извлечь subject."""
+    text = _read("invoice_002.txt")
+    response = client.post("/pipeline", json={"text": text})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["extract"]["amount"] == 900_000.0
+    assert data["extract"]["inn"] == "5047123456"
+    assert data["classify"]["doc_type"] == "invoice"
+    # subject извлечён → check_subject должен отработать
+    assert data["check_subject"] is not None
+
+
+def test_api_extract_scan_ocr_returns_none_inn():
+    """API extract на scan_ocr — inn должен быть None."""
+    text = _read("scan_ocr_001.txt")
+    response = client.post("/extract", json={"text": text})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["inn"] is None
+
+
+def test_api_classify_scan_ocr_returns_unknown():
+    """API classify на scan_ocr — unknown."""
+    text = _read("scan_ocr_001.txt")
+    response = client.post("/classify", json={"text": text})
+    assert response.status_code == 200
+    assert response.json()["doc_type"] == "unknown"
