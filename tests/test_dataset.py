@@ -164,3 +164,73 @@ def test_dataset_subjects(status: str, subject: str) -> None:
             f"FAIL expected, got PASS for {subject!r}: {reason}"
         )
     # EDGE — нет жёсткого ассерта, проверяем только типы
+
+
+# --- Дополнительные проверки датасета (iter 59-65) ---
+
+def test_all_dataset_files_have_classify_result():
+    """Все файлы датасета должны возвращать валидный тип (не None)."""
+    for fname in sorted(DATASET_DIR.glob("*.txt")):
+        if fname.name == "subjects_test.txt":
+            continue
+        text = _read(fname.name)
+        doc_type, _ = classify(text)
+        assert doc_type in {"contract", "spec", "invoice", "act", "unknown"}, (
+            f"{fname.name}: invalid doc_type {doc_type}"
+        )
+
+
+def test_all_dataset_files_have_confidence_in_range():
+    """confidence classify должен быть в [0, 1]."""
+    for fname in sorted(DATASET_DIR.glob("*.txt")):
+        if fname.name == "subjects_test.txt":
+            continue
+        text = _read(fname.name)
+        _, conf = classify(text)
+        assert 0.0 <= conf <= 1.0, f"{fname.name}: conf {conf} out of range"
+
+
+def test_all_extract_results_have_all_keys():
+    """extract всегда возвращает все 5 ключей."""
+    for fname in sorted(DATASET_DIR.glob("*.txt")):
+        if fname.name == "subjects_test.txt":
+            continue
+        text = _read(fname.name)
+        result = extract(text)
+        assert set(result.keys()) == {"amount", "date", "inn", "contractor", "subject"}
+
+
+def test_all_amounts_are_positive_or_none():
+    """amount должен быть > 0 или None."""
+    for fname in sorted(DATASET_DIR.glob("*.txt")):
+        if fname.name == "subjects_test.txt":
+            continue
+        text = _read(fname.name)
+        result = extract(text)
+        if result["amount"] is not None:
+            assert result["amount"] > 0, f"{fname.name}: amount {result['amount']} not positive"
+
+
+def test_all_dates_are_iso_format():
+    """date должен быть None или ISO YYYY-MM-DD."""
+    import re
+    iso_re = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+    for fname in sorted(DATASET_DIR.glob("*.txt")):
+        if fname.name == "subjects_test.txt":
+            continue
+        text = _read(fname.name)
+        result = extract(text)
+        if result["date"] is not None:
+            assert iso_re.match(result["date"]), f"{fname.name}: date {result['date']} not ISO"
+
+
+def test_all_inn_are_10_or_12_digits():
+    """ИНН должен быть 10 или 12 цифр или None."""
+    for fname in sorted(DATASET_DIR.glob("*.txt")):
+        if fname.name == "subjects_test.txt":
+            continue
+        text = _read(fname.name)
+        result = extract(text)
+        if result["inn"] is not None:
+            assert len(result["inn"]) in (10, 12), f"{fname.name}: INN {result['inn']} wrong length"
+            assert result["inn"].isdigit(), f"{fname.name}: INN {result['inn']} not digits"
