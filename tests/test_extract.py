@@ -326,3 +326,36 @@ def test_extract_amount_billion_abbreviation():
     r = extract("Сумма: 2 млрд руб.")
     assert r["amount"] is not None
     assert r["amount"] >= 1_000_000_000
+
+
+def test_extract_with_emoji():
+    """Эмодзи не должны ломать extract."""
+    r = extract("Договор № 1 от 01.03.2025 🚜 ИНН 7701234567")
+    assert r["inn"] == "7701234567"
+    assert r["date"] == "2025-03-01"
+
+
+def test_extract_with_html_tags():
+    """HTML теги в тексте — должны игнорироваться."""
+    r = extract("<p>ИНН 7701234567</p>")
+    assert r["inn"] == "7701234567"
+
+
+def test_extract_with_markdown():
+    """Markdown разметка."""
+    r = extract("**Сумма:** 1 250 000,00 руб.")
+    assert r["amount"] == 1_250_000.0
+
+
+def test_extract_cyrillic_inn():
+    """ИНН с кириллицей рядом."""
+    r = extract("ИНН 7701234567, контрагент ООО «Тест»")
+    assert r["inn"] == "7701234567"
+    assert r["contractor"] == "ООО «Тест»"
+
+
+def test_extract_multiple_dates():
+    """Несколько дат — должна вернуться первая."""
+    r = extract("от 01.03.2025, оплата до 10.03.2025")
+    # Для не-invoice документов — первая дата (01.03.2025)
+    assert r["date"] == "2025-03-01"
