@@ -220,3 +220,18 @@ def test_phone_with_spaces():
 
 def test_phone_with_dashes():
     assert parse_phone("тел: 8-999-123-45-67") == "+79991234567"
+
+
+def test_parse_contractor_spk():
+    from credit_check.parsers.contractor import parse_contractor_extended
+    assert parse_contractor_extended("СПК «Колос»") == "СПК «Колос»"
+
+
+def test_parse_contractor_kfh():
+    from credit_check.parsers.contractor import parse_contractor_extended
+    assert parse_contractor_extended("КФХ «Рассвет»") == "КФХ «Рассвет»"
+
+
+def test_parse_contractor_nko():
+    from credit_check.parsers.contractor import parse_contractor_extended
+    assert parse_contractor_extended("НКО «Фонд развития»") == "НКО «Фонд развития»"
