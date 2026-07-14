@@ -310,3 +310,27 @@ def test_vat_no_rate():
 
 def test_currency_empty():
     assert parse_currency("") is None
+
+
+# --- Тесты генерации графиков (iter 91) ---
+
+def test_generate_plots_script_exists():
+    """Скрипт генерации графиков существует."""
+    from pathlib import Path
+    script = Path(__file__).resolve().parent.parent / "scripts" / "generate_plots.py"
+    assert script.exists()
+
+
+def test_plots_generated():
+    """Все PNG-графики на месте."""
+    from pathlib import Path
+    images_dir = Path(__file__).resolve().parent.parent / "docs" / "images"
+    expected = [
+        "classify_confidence.png",
+        "check_subject_results.png",
+        "classify_threshold_experiment.png",
+        "check_subject_confusion_matrix.png",
+        "check_subject_confidence_distribution.png",
+    ]
+    for name in expected:
+        assert (images_dir / name).exists(), f"Missing: {name}"
