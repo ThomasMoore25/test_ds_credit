@@ -233,3 +233,20 @@ def test_classify_one_word_act():
     """Одно слово «акт»."""
     dt, _ = classify("акт")
     assert dt in {"act", "unknown"}
+
+
+# --- Stress tests ---
+
+def test_classify_stress_100_iterations():
+    """100 вызовов classify."""
+    text = "СЧЁТ НА ОПЛАТУ № 12 от 01.03.2025"
+    for _ in range(100):
+        dt, _ = classify(text)
+        assert dt == "invoice"
+
+
+def test_classify_stress_large_text():
+    """Текст 50KB."""
+    text = "СЧЁТ НА ОПЛАТУ № 12. " + "услуга " * 5000
+    dt, _ = classify(text)
+    assert dt == "invoice"
