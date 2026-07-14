@@ -250,24 +250,6 @@ def plot_threshold_experiment() -> pathlib.Path:
     return out
 
 
-def main() -> int:
-    print("Генерация графиков...")
-    p1 = plot_classify_confidence()
-    print(f"  ✓ {p1}")
-    p2 = plot_check_subject_results()
-    print(f"  ✓ {p2}")
-    p3 = plot_threshold_experiment()
-    print(f"  ✓ {p3}")
-    p4 = plot_check_subject_confusion_matrix()
-    print(f"  ✓ {p4}")
-    print("Готово.")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
-
-
 def plot_check_subject_confusion_matrix() -> pathlib.Path:
     """График confusion matrix для check_subject на PASS/FAIL."""
     from credit_check.metrics import compute_check_subject_metrics
@@ -295,3 +277,20 @@ def plot_check_subject_confusion_matrix() -> pathlib.Path:
     fig.savefig(out, dpi=120)
     plt.close(fig)
     return out
+
+def main() -> int:
+    print("Генерация графиков...")
+    p1 = plot_classify_confidence()
+    print(f"  ✓ {p1}")
+    p2 = plot_check_subject_results()
+    print(f"  ✓ {p2}")
+    p3 = plot_threshold_experiment()
+    print(f"  ✓ {p3}")
+    p4 = plot_check_subject_confusion_matrix()
+    print(f"  ✓ {p4}")
+    print("Готово.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
