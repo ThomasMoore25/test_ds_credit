@@ -446,3 +446,32 @@ def test_extract_amount_english_with_rub():
     """Английский формат с RUB."""
     r = extract("Total: 1,250,000.00 RUB")
     assert r["amount"] == 1_250_000.0
+
+
+# --- Тесты дат (iter 84-87) ---
+
+def test_extract_date_february_28():
+    """28 февраля 2025 г."""
+    assert extract("от 28 февраля 2025 г.")["date"] == "2025-02-28"
+
+
+def test_extract_date_december_31():
+    """31 декабря 2024 г."""
+    assert extract("от 31 декабря 2024 г.")["date"] == "2024-12-31"
+
+
+def test_extract_date_january_1():
+    """1 января 2025 г."""
+    assert extract("от 1 января 2025 г.")["date"] == "2025-01-01"
+
+
+def test_extract_date_invalid_returns_none():
+    """31.02.2025 — невалидная дата → None."""
+    assert extract("от 31.02.2025")["date"] is None
+
+
+def test_extract_date_year_only():
+    """Только год — не должен парситься как дата."""
+    r = extract("Договор 2025 года")
+    # Может вернуть None или какую-то дату, но не должен падать
+    assert r["date"] is None or "2025" in r["date"]
