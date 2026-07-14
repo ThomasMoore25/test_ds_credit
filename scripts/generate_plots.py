@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Генерация 3 графиков для README.
+"""Генерация 5 графиков для README.
 
 Сохраняет PNG в docs/images/:
     1. classify_confidence.png   — confidence classify по 7 файлам датасета
     2. check_subject_results.png — результаты check_subject на 15 предметах
     3. classify_threshold_experiment.png — эксперимент с порогом top1-top2
+    4. check_subject_confusion_matrix.png — confusion matrix PASS/FAIL
+    5. check_subject_confidence_distribution.png — гистограмма confidence
 
 Запуск:
     python scripts/generate_plots.py
