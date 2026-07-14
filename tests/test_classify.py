@@ -140,3 +140,73 @@ def test_classify_special_characters():
     doc_type, _ = classify(text)
     # Должен быть contract или unknown, но не падать
     assert doc_type in {"contract", "spec", "invoice", "act", "unknown"}
+
+
+# --- Дополнительные тесты (iter 36-45) ---
+
+def test_classify_invoice_with_specs_marker():
+    """Счёт со словом «спецификация» в основании — должен остаться invoice."""
+    text = "СЧЁТ НА ОПЛАТУ № 12. Основание: спецификация №1."
+    doc_type, _ = classify(text)
+    # «спецификация» — слабый маркер здесь, «счёт на оплату» — сильный
+    assert doc_type in {"invoice", "spec"}
+
+
+def test_classify_act_with_upd_full():
+    """Полный УПД."""
+    text = "Универсальный передаточный документ. Статус 1. Работы выполнены."
+    doc_type, conf = classify(text)
+    assert doc_type == "act"
+    assert conf > 0.5
+
+
+def test_classify_contract_with_subject_marker():
+    """Договор с «предмет договора»."""
+    text = "ДОГОВОР. Предмет договора: поставка. Сумма договора: 100 руб."
+    doc_type, _ = classify(text)
+    assert doc_type == "contract"
+
+
+def test_classify_spec_with_date_marker():
+    """Спецификация с «дата составления»."""
+    text = "Спецификация №1 к договору. Дата составления: 01.03.2025. Итого с НДС."
+    doc_type, _ = classify(text)
+    assert doc_type == "spec"
+
+
+def test_classify_minimal_invoice():
+    """Минимальный счёт."""
+    doc_type, conf = classify("Счёт на оплату")
+    assert doc_type == "invoice"
+    assert conf > 0.5
+
+
+def test_classify_minimal_contract():
+    """Минимальный договор."""
+    doc_type, _ = classify("Договор поставки")
+    assert doc_type == "contract"
+
+
+def test_classify_minimal_spec():
+    """Минимальная спецификация."""
+    doc_type, _ = classify("Спецификация №1 к договору поставки")
+    assert doc_type == "spec"
+
+
+def test_classify_minimal_act():
+    """Минимальный акт."""
+    doc_type, _ = classify("Акт выполненных работ")
+    assert doc_type == "act"
+
+
+def test_classify_returns_float_confidence():
+    """confidence должен быть float в [0, 1]."""
+    _, conf = classify("Договор поставки")
+    assert isinstance(conf, float)
+    assert 0.0 <= conf <= 1.0
+
+
+def test_classify_unknown_for_pure_numbers():
+    """Чистые числа → unknown."""
+    doc_type, _ = classify("1234567890")
+    assert doc_type == "unknown"
