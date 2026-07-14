@@ -138,6 +138,17 @@ def compute_extract_precision() -> dict[str, float]:
     }
 
 
+def compute_classify_avg_confidence() -> float:
+    """Средняя confidence classify по датасету (без unknown)."""
+    confs = []
+    for fname, expected in _EXPECTED_CLASSIFY.items():
+        text = _read(fname)
+        _, conf = classify(text)
+        if expected != "unknown":
+            confs.append(conf)
+    return sum(confs) / len(confs) if confs else 0.0
+
+
 def compute_classify_metrics() -> dict[str, float]:
     """Считает accuracy и долю unknown для classify()."""
     correct = 0
@@ -251,6 +262,7 @@ def format_metrics() -> str:
     cm = compute_classify_metrics()
     lines.append(f"- Accuracy: **{cm['accuracy']:.1%}**")
     lines.append(f"- Доля unknown: **{cm['unknown_rate']:.1%}**")
+    lines.append(f"- Средняя confidence (без unknown): **{compute_classify_avg_confidence():.1%}**")
 
     lines.append("\n## check_subject() — метрики на subjects_test.txt\n")
     sm = compute_check_subject_metrics()
