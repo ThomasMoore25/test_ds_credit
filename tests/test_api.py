@@ -130,3 +130,14 @@ def test_openapi_schema_available() -> None:
     assert "/check-subject" in paths
     assert "/pipeline" in paths
     assert "/health" in paths
+
+
+def test_version_endpoint() -> None:
+    """Endpoint /version возвращает версию."""
+    response = client.get("/version")
+    assert response.status_code == 200
+    data = response.json()
+    assert "version" in data
+    assert "python_version" in data
+    assert "api_title" in data
+    assert data["api_title"] == "Credit Check API"
