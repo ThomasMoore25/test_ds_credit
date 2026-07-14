@@ -6,8 +6,8 @@ from typing import Final
 # Маппинг обозначений валют → ISO-код
 _CURRENCY_PATTERNS: Final[list[tuple[str, re.Pattern[str]]]] = [
     ("RUB", re.compile(r"\b(?:руб(?:лей|ля|ль|\.|\b)|₽|RUB)\b", re.IGNORECASE)),
-    ("USD", re.compile(r"\b(?:доллар(?:ов|а)?|USD|\$)\b", re.IGNORECASE)),
-    ("EUR", re.compile(r"\b(?:евро|EUR|€)\b", re.IGNORECASE)),
+    ("USD", re.compile(r"(?:доллар(?:ов|а)?|USD|\$)", re.IGNORECASE)),
+    ("EUR", re.compile(r"(?:евро|EUR|€)", re.IGNORECASE)),
     ("KZT", re.compile(r"\b(?:тенге|KZT|₸)\b", re.IGNORECASE)),
     ("CNY", re.compile(r"\b(?:юаней|юань|CNY|¥)\b", re.IGNORECASE)),
 ]
