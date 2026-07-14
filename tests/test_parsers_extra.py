@@ -131,10 +131,11 @@ def test_doc_number_from_contract_001():
 
 
 def test_vat_rate_from_act_001():
-    """В act_001 есть «НДС 20%» (в таблице)."""
+    """В act_001 НДС указан суммой, не процентом — parse_vat_rate вернёт None."""
     text = _read("act_001.txt")
+    # В тексте есть «НДС 208 333,33 руб.» — нет ставки в %.
     rate = parse_vat_rate(text)
-    assert rate in (10, 20)  # зависит от того, что первым найдёт
+    assert rate is None  # явной ставки нет
 
 
 def test_vat_exempt_from_act_002():
