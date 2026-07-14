@@ -258,9 +258,40 @@ def main() -> int:
     print(f"  ✓ {p2}")
     p3 = plot_threshold_experiment()
     print(f"  ✓ {p3}")
+    p4 = plot_check_subject_confusion_matrix()
+    print(f"  ✓ {p4}")
     print("Готово.")
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+def plot_check_subject_confusion_matrix() -> pathlib.Path:
+    """График confusion matrix для check_subject на PASS/FAIL."""
+    from credit_check.metrics import compute_check_subject_metrics
+    sm = compute_check_subject_metrics()
+    cm = sm["confusion_matrix"]
+
+    fig, ax = plt.subplots(figsize=(5, 4.5), constrained_layout=True)
+    matrix = [[cm["tp"], cm["fp"]], [cm["fn"], cm["tn"]]]
+    im = ax.imshow(matrix, cmap="Greens", vmin=0, vmax=max(cm.values()) + 1)
+
+    ax.set_xticks([0, 1])
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(["PASS (expected)", "FAIL (expected)"])
+    ax.set_yticklabels(["PASS (predicted)", "FAIL (predicted)"])
+    ax.set_xlabel("Ожидаемый результат")
+    ax.set_ylabel("Предсказанный результат")
+    ax.set_title("Confusion matrix: check_subject()")
+
+    for i in range(2):
+        for j in range(2):
+            ax.text(j, i, str(matrix[i][j]), ha="center", va="center",
+                    fontsize=16, color="black" if matrix[i][j] > 0 else "gray")
+
+    out = OUT / "check_subject_confusion_matrix.png"
+    fig.savefig(out, dpi=120)
+    plt.close(fig)
+    return out
