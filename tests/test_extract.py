@@ -527,3 +527,37 @@ def test_extract_amount_with_separators_not_treated_as_inn():
     # Если рядом есть «БИК», но число с разделителями — это сумма, не БИК
     r = extract("БИК 044525225. Сумма: 1 250 000,00 руб.")
     assert r["amount"] == 1_250_000.0
+
+
+# --- Тесты коротких сумм (iter 3) ---
+
+def test_extract_short_amount_rub():
+    """Короткая сумма 100 руб. — должна парситься."""
+    assert extract("Стоимость: 100 руб.")["amount"] == 100.0
+
+
+def test_extract_short_amount_rub_symbol():
+    """Короткая сумма 50 ₽."""
+    assert extract("Сумма: 50 ₽")["amount"] == 50.0
+
+
+def test_extract_short_amount_rub_english():
+    """Короткая сумма 200 RUB."""
+    assert extract("Сумма: 200 RUB")["amount"] == 200.0
+
+
+def test_extract_short_amount_with_kopecks():
+    """Короткая сумма с копейками 99,50 руб."""
+    assert extract("Сумма: 99,50 руб.")["amount"] == 99.5
+
+
+def test_extract_multiple_amounts_returns_max():
+    """Несколько сумм — возвращается максимум (итоговая)."""
+    r = extract("Стоимость: 100 руб. Сумма: 200 руб. Итого: 300 руб.")
+    assert r["amount"] == 300.0
+
+
+def test_extract_short_amount_without_currency_returns_none():
+    """Короткое число без валюты — не сумма (защита от ложных срабатываний)."""
+    assert extract("Номер 12")["amount"] is None
+    assert extract("Дата 03")["amount"] is None
