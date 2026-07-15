@@ -595,3 +595,27 @@ def test_extract_date_with_go_suffix_2():
 def test_extract_date_without_suffix_still_works():
     """Дата '1 марта 2025' (без суффикса) — регрессия."""
     assert extract("от 1 марта 2025")["date"] == "2025-03-01"
+
+
+# --- Тесты контрагентов СПК/КФХ/НКО (iter 2 новой серии) ---
+
+def test_extract_contractor_spk():
+    """СПК — валидный контрагент (сельхозпроизводственный кооператив)."""
+    assert extract("Поставщик: СПК «Колос»")["contractor"] == "СПК «Колос»"
+
+
+def test_extract_contractor_kfh():
+    """КФХ — валидный контрагент (крестьянско-фермерское хозяйство)."""
+    assert extract("Поставщик: КФХ «Рассвет»")["contractor"] == "КФХ «Рассвет»"
+
+
+def test_extract_contractor_nko():
+    """НКО — валидный контрагент (некоммерческая организация)."""
+    assert extract("Поставщик: НКО «Фонд развития»")["contractor"] == "НКО «Фонд развития»"
+
+
+def test_extract_contractor_all_types():
+    """Все типы контрагентов работают."""
+    for form in ["ООО", "АО", "ПАО", "ЗАО", "СПК", "КФХ", "НКО"]:
+        text = f"Поставщик: {form} «Тест»"
+        assert extract(text)["contractor"] == f"{form} «Тест»"
