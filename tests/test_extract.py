@@ -578,3 +578,20 @@ def test_extract_date_month_name_without_space_g():
 def test_extract_date_may_without_g():
     """Дата '1 мая 2025' без 'г.' — должна парситься."""
     assert extract("от 1 мая 2025")["date"] == "2025-05-01"
+
+
+# --- Тесты дат с суффиксами (iter 1 новой серии) ---
+
+def test_extract_date_with_go_suffix():
+    """Дата '1го марта 2025' — суффикс 'го'."""
+    assert extract("от 1го марта 2025")["date"] == "2025-03-01"
+
+
+def test_extract_date_with_go_suffix_2():
+    """Дата '2го марта 2025'."""
+    assert extract("от 2го марта 2025")["date"] == "2025-03-02"
+
+
+def test_extract_date_without_suffix_still_works():
+    """Дата '1 марта 2025' (без суффикса) — регрессия."""
+    assert extract("от 1 марта 2025")["date"] == "2025-03-01"

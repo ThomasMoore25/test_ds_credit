@@ -69,11 +69,11 @@ def _expand_2digit_year(yy: int) -> int:
 # --- Шаблоны дат (применяются по очереди, возвращается первый match) ----------
 
 _DATE_PATTERNS: Final[list[tuple[str, re.Pattern[str]]]] = [
-    # 1 марта 2025 г. | 24 марта 2025 г.
+    # 1 марта 2025 г. | 24 марта 2025 г. | 1го марта 2025
     (
         "month_name",
         re.compile(
-            rf"\b(\d{{1,2}})\s+({_MONTH_NAMES_PATTERN})\s+(\d{{4}})(?:\s*г\.?)?",
+            rf"\b(\d{{1,2}})(?:го|г|е)?\s+({_MONTH_NAMES_PATTERN})\s+(\d{{4}})(?:\s*г\.?)?",
             re.IGNORECASE,
         ),
     ),
