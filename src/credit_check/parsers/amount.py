@@ -278,6 +278,32 @@ def _has_context(text: str, start: int, end: int) -> bool:
     )
 
 
+def _is_negative(text: str, start: int) -> bool:
+    """True, если перед числом стоит знак минус (отрицательная сумма).
+
+    Защита от бага: «Сумма: -1250000.00 руб.» не должна возвращать 1250000.0.
+    Для казначейства отрицательная сумма — это возврат, не приход.
+    """
+    # Смотрим 1-2 символа перед числом
+    prefix = text[max(0, start - 2): start]
+    # Если есть минус, отделённый пробелом или нет
+    return bool(re.search(r"(?:^|\s)-\s*$", prefix))
+
+
+def _looks_like_inn(text: str, start: int, end: int, raw: str) -> bool:
+    """True, если число похоже на ИНН (10-12 цифр) и рядом есть маркер «ИНН».
+
+    Защита от бага: «ИНН 7701234567, сумма 1 250 000 руб.» не должна
+    возвращать 7701234567.0 как сумму.
+    """
+    digits_only = re.sub(r"\D", "", raw)
+    if len(digits_only) not in (10, 12):
+        return False
+    # Проверяем, есть ли маркер «ИНН» в пределах 20 символов перед числом
+    left = text[max(0, start - 20): start].lower()
+    return "инн" in left
+
+
 def parse_amount(text: str) -> float | None:
     """Извлекает сумму из текста.
 
@@ -309,6 +335,12 @@ def parse_amount(text: str) -> float | None:
             raw = m.group(0)
             value = _numeric_match_to_float(raw)
             if value is None or value <= 0:
+                continue
+            # Защита от отрицательных сумм: «Сумма: -1250000.00 руб.» → None
+            if _is_negative(text_to_search, m.start()):
+                continue
+            # Защита от ИНН: «ИНН 7701234567, сумма ...» не должно вернуть ИНН как сумму
+            if _looks_like_inn(text_to_search, m.start(), m.end(), raw):
                 continue
             # ТРЕБУЕМ контекст — иначе это не сумма, а случайное число
             if not _has_context(text_to_search, m.start(), m.end()):
