@@ -561,3 +561,20 @@ def test_extract_short_amount_without_currency_returns_none():
     """Короткое число без валюты — не сумма (защита от ложных срабатываний)."""
     assert extract("Номер 12")["amount"] is None
     assert extract("Дата 03")["amount"] is None
+
+
+# --- Тесты дат без "г." (iter 4) ---
+
+def test_extract_date_month_name_without_g():
+    """Дата '1 марта 2025' без 'г.' — должна парситься."""
+    assert extract("от 1 марта 2025")["date"] == "2025-03-01"
+
+
+def test_extract_date_month_name_without_space_g():
+    """Дата '1 марта 2025г.' (без пробела перед г.) — должна парситься."""
+    assert extract("от 1 марта 2025г.")["date"] == "2025-03-01"
+
+
+def test_extract_date_may_without_g():
+    """Дата '1 мая 2025' без 'г.' — должна парситься."""
+    assert extract("от 1 мая 2025")["date"] == "2025-05-01"

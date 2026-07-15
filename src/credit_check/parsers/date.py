@@ -73,7 +73,7 @@ _DATE_PATTERNS: Final[list[tuple[str, re.Pattern[str]]]] = [
     (
         "month_name",
         re.compile(
-            rf"\b(\d{{1,2}})\s+({_MONTH_NAMES_PATTERN})\s+(\d{{4}})\s*г\.?",
+            rf"\b(\d{{1,2}})\s+({_MONTH_NAMES_PATTERN})\s+(\d{{4}})(?:\s*г\.?)?",
             re.IGNORECASE,
         ),
     ),
